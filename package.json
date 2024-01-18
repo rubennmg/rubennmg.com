@@ -1,6 +1,8 @@
 {
-  "name": "",
+  "name": "rubennmg-hostinger-astro-app",
   "type": "module",
+  "homepage": "https://rubennmg.com",
+  "private": true,
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
