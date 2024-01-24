@@ -6,22 +6,28 @@
 // const { ... } = Astro.props;
 ---
 
-<header>
-    <nav class= "bg-navbar">  
+<header class="bg-navbar mx-auto">
+    <navbar>  
         <div class="max-w-screen-xl flex items-center justify-between mx-52 p-4">
             <!-- logo -->
             <img src="/person.svg" alt="logo" class="w-10" />
-            <span class="self-center text-2xl font-semibold whitespace-nowrap text-df-text p-4">rubennmg</span>
+            <span class="self-center text-3xl font-semibold whitespace-nowrap text-df-text p-4">rubennmg</span>
             <!-- items -->
             <div class="container flex items-center justify-center p-6 mx-auto text-gray-600 dark:text-gray-300">
-                <a href="/" class="text-df-text hover:bg-secondary border-b-2 border-secondary-500 mx-1.5 sm:mx-6">sobre mí</a>
+                <a 
+                    class="text-df-text text-xl hover:bg-secondary rounded-xl border border-primary border-x-2 px-2 py-1 transition mx-2.5"
+                    href="/" >sobre mí</a>
         
-                <a href="/" class="text-df-text hover:bg-secondary border-b-2 border-transparent mx-1.5 sm:mx-6">formación</a>
+                <a class="text-df-text text-xl hover:bg-secondary rounded-xl border border-primary border-x-2 px-2 py-1 transition mx-2.5"
+                    href="/">formación</a>
         
-                <a href="/" class="text-df-text hover:bg-secondary border-b-2 border-transparent mx-1.5 sm:mx-6">proyectos</a>
+                <a class="text-df-text text-xl hover:bg-secondary rounded-xl border border-primary border-x-2 px-2 py-1 transition mx-2.5"
+                    href="/">proyectos</a>
         
-                <a href="/" class="text-df-text hover:bg-secondary border-b-2 border-transparent mx-1.5 sm:mx-6">contacto</a>
+                <a 
+                    class="text-df-text text-xl hover:bg-secondary rounded-xl border border-primary border-x-2 px-2 py-1 transition mx-2.5"
+                    href="/">contacto</a>
             </div>
         </div>
-    </nav>
+    </navbar>
 </header>
