@@ -3,6 +3,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import SectionContainer from '../components/SectionContainer.astro';
 import SocialPill from '../components/SocialPill.astro';
+import Education from '../components/Education.astro';
 ---
 
 <html lang="es">
@@ -14,12 +15,10 @@ import SocialPill from '../components/SocialPill.astro';
 	<body class="bg-navbar">
 		<Header />
 		<main>
-			<SectionContainer id="about me">
+			<SectionContainer id="about">
 				<h1 class="text-4xl font-bold text-df-text">Rubén Martínez Ginzo</h1>
-				<p class="text-xl text-secondary">Estudiante</p>
-				<p class="text-lg text-df-text">texto texto texto texto texto texto texto texto texto texto texto texto</p>
-				<span class="text-lg text-df-text">texto texto texto</span>
-				<p class="text-lg text-df-text">texto texto texto texto texto texto texto texto texto texto texto texto</p>
+				<p class="text-xl text-df-text text-opacity-70 mb-4">Estudiante</p>
+				<p class="text-lg text-df-text">Soy Rubén</p>
 				<nav class="flex gap-4 mt-8 flex-wrap">
 					<SocialPill href="https://github.com/rubennmg">
 						<img class="w-6" src="github.svg">
@@ -33,11 +32,13 @@ import SocialPill from '../components/SocialPill.astro';
 			</SectionContainer>
 
 			<SectionContainer id="education">
-				<h1 class="text-4xl font-bold text-df-text">Formación</h1>
+				<h2 class="text-4xl font-bold text-df-text mb-8">Formación</h2>
+				<Education />
 			</SectionContainer>
 
-			<SectionContainer id="education">
-				<h1 class="text-4xl font-bold text-df-text">Proyectos</h1>
+			<SectionContainer id="projects">
+				<h2 class="text-4xl font-bold text-df-text mb-8">Proyectos</h2>
+				<p class="text-df-text text-xl">In progress...</p>
 			</SectionContainer>
 		</main>
 

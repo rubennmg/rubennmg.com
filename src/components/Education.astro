@@ -1,0 +1,30 @@
+---
+import EducationItem from "./EducationItem.astro"
+
+const EDUCATION = [
+    {
+        title: "Grado en Ingeniería Informática",
+        place: "Universidad de Oviedo",
+        date: "sept. 2020 - jun. 2024",
+        description: "Actualmente estoy cursando el 4º y último curso de la carrera",
+        link: "https://www.uniovi.es"
+    },
+    {
+        title: "Bachillerato en modalidad tecnológica",
+        place: "IES Jovellanos",
+        date: "sept. 2018 - jun. 2020",
+        description: "Cursado el Bachillerato en modalidad tecnológica",
+        link: "https://www.iesjovellanos.com"
+    }
+]
+---
+
+<ol class="relative border-s border-secondary ml-3">
+    {
+        EDUCATION.map((education) => (
+            <li class="mb-10 ms-4">
+            <EducationItem {...education} />
+        </li>
+        ))
+    }
+</ol>

@@ -10,6 +10,8 @@ export default {
 			'secondary': '#424c5a',
 			'accent': '#8a7b9e',
 			'border': '#f1aa4e',
+			'softblue': '#a8b2d1',
+			'textsoft': '#7e8187'
 		},
 	},
 	plugins: [],
