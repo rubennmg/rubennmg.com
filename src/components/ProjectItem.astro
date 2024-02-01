@@ -1,0 +1,38 @@
+---
+interface Props {
+    title: string;
+    description: string;
+    link?: string;
+}
+
+const { title, description, link } = Astro.props;
+---
+<div class="col-span-1 row-span-1 order-1">
+    <p class="text-2xl font-bold text-df-text mb-2">
+        {title}
+    </p>
+</div>
+
+<div class="col-1 row-span-1 order-3">
+    <p class="text-lg text-df-text mb-4">
+        {description}
+    </p>
+</div>
+
+<div class="col-span-1 row-span-1 order-4">
+    <a class="text-lg text-df-text mb-4" href={link}>
+        {link}
+    </a>
+</div>
+
+<div class="col-span-1 row-span-3 order-2">
+    <img src="project.svg">
+    </img>
+</div>
+
+<style>
+    .leftItem {
+        grid-column: 1 ;
+        grid-row: 2 ;
+    }
+</style>

@@ -1,0 +1,37 @@
+---
+import ProjectItem from "./ProjectItem.astro";
+
+const PROJECTS = [
+    {
+        title: 'Project 1',
+        description: 'This is a description of project 1',
+        link: 'https://github.com',
+    },
+    {
+        title: 'Project 2',
+        description: 'This is a description of project 2',
+        link: 'https://github.com',        
+    },
+    {
+        title: 'Project 3',
+        description: 'This is a description of project 3',
+        link: 'https://github.com',
+    }   
+]
+---
+
+{
+    PROJECTS.map((project) => (
+        <div class="container border border-secondary rounded-2xl my-6 px-6 py-4">
+            <ProjectItem {...project} />
+        </div>
+    ))
+}
+
+<style>
+    .container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+    }
+</style>
