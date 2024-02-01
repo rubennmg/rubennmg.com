@@ -5,13 +5,14 @@ export default {
 		colors: {
 			'df-text': '#eeefe9',
 			'background': '#1E1E23',
+			'bodyback': '#121212',
 			'navbar': '#0f100b',
 			'primary': '#bcbfa8',
 			'secondary': '#424c5a',
 			'accent': '#8a7b9e',
 			'border': '#f1aa4e',
 			'softblue': '#a8b2d1',
-			'textsoft': '#7e8187'
+			'textsoft': '#7e8187',
 		},
 	},
 	plugins: [],

@@ -3,12 +3,12 @@
 - About
 - Formation
 - Projects
-- Contact
 
 # More
-- 404 not found own page
-- in development
+- 404 not found own page --> ToDo
+- in development --> ToDo
 
 # ToDo
-- Componente para elmento de navbar y sustituirlo por ``<a>``
-- footer
+- Componente para elmento de navbar y sustituirlo por ``<a>`` --> done
+- footer --> done
+- añadir transiciones y efectos
