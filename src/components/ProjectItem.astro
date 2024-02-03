@@ -1,4 +1,6 @@
 ---
+import LinkButton from "./LinkButton.astro";
+
 interface Props {
     title: string;
     description: string;
@@ -15,42 +17,48 @@ const { title, description, link, img, tags } = Astro.props;
 ---
 
 <div class="col-span-1 row-span-1 order-1">
-    <p class="text-2xl font-bold text-df-text mb-2">
+    <h2 class="flex gap-2 text-2xl font-bold text-white mb-2 underline">
+        <img src="project.svg" class="w-8" />
         {title}
-    </p>
-    <ul class="flex gap-x-2 flex-row mb-2">
-        {(tags).map((tag) => (
-            <li>
-                <span class={`flex gap-x-2 rounded-full text-xs ${tag.class} py-1 px-2 `}>
-                    <tag.icon class="size-4" />
-                    {tag.name}
-                </span>
-            </li>
-        ))}
+    </h2>
+    <ul class="flex gap-x-2 flex-row mb-1">
+        {
+            tags.map((tag) => (
+                <li>
+                    <span
+                        class={`flex gap-x-2 rounded-full text-xs ${tag.class} py-1 px-2 `}
+                    >
+                        <tag.icon class="size-4" />
+                        {tag.name}
+                    </span>
+                </li>
+            ))
+        }
     </ul>
-    
 </div>
 
-<div class="col-1 row-span-1 order-3">
-    <p class="text-lg text-df-text mb-4">
+<div class="col-1 row-span-1 order-3 mt-1">
+    <p class="text-lg text-textsoft mb-2">
         {description}
     </p>
 </div>
 
-<div class="col-span-1 row-span-1 order-4">
-    <a class="text-lg text-df-text mb-4 underline" href={link} target="_blank">
-        {link}
-    </a>
-</div>
+{
+    !link ? (
+        ""
+    ) : (
+        <div class="col-span-1 row-span-1 order-4 mt-6">
+            <LinkButton href={link}>
+                <img class="w-6" src="github.svg" />
+                Ver código
+            </LinkButton>
+        </div>
+    )
+}
 
 <div class="col-span-1 row-span-3 order-2">
-    <img src={img}>
-    </img>
+        <img src={img} 
+            class="transition duration-500 sm:h-full md:scale-95 hover:scale-110 transform-gpu" 
+            loading="lazy" 
+            />
 </div>
-
-<style>
-    .leftItem {
-        grid-column: 1 ;
-        grid-row: 2 ;
-    }
-</style>
