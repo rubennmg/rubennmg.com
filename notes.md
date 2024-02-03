@@ -12,3 +12,5 @@
 - Componente para elmento de navbar y sustituirlo por ``<a>`` --> done
 - footer --> done
 - añadir transiciones y efectos
+
+- mirar ideas y diseños de la propia página de Astro

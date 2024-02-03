@@ -1,22 +1,58 @@
 ---
 import ProjectItem from "./ProjectItem.astro";
+import Java from "./icons/Java.astro";
+import Ruby from "./icons/Ruby.astro";
+import Maven from "./icons/Maven.astro";
+import C from "./icons/C.astro";
+import Python from "./icons/Python.astro";
+
+const TAGS = {
+    JAVA: {
+        name: 'Java',
+        class: 'bg-labelbg text-white',
+        icon: Java
+    },
+    RUBY: {
+        name: 'Ruby',
+        class: 'bg-labelbg text-white',
+        icon: Ruby
+    },
+    MAVEN: {
+        name: 'Maven',
+        class: 'bg-labelbg text-white',
+        icon: Maven
+    },
+    C: {
+        name: 'C/C++',
+        class: 'bg-labelbg text-white',
+        icon: C
+    },
+    PYTHON: {
+        name: 'Python',
+        class: 'bg-labelbg text-white',
+        icon: Python
+    }
+}
 
 const PROJECTS = [
     {
-        title: 'Project 1',
+        title: 'SI2022-PL41',
         description: 'In progress...',
-        link: 'https://github.com',
-        img: 'project.svg'
+        link: 'https://github.com/miermontoto/SI2022-PL41',
+        img: 'project.svg',
+        tags: [TAGS.JAVA, TAGS.RUBY, TAGS.MAVEN]
     },
     {
-        title: 'Project 2',
+        title: 'What The Noise',
         description: 'In progress...',
-        link: 'https://github.com',       
+        link: 'https://github.com', 
+        tags: [TAGS.C, TAGS.PYTHON]      
     },
     {
         title: 'Project 3',
         description: 'In progress...',
         link: 'https://github.com',
+        tags: []
     }   
 ]
 ---
@@ -24,7 +60,13 @@ const PROJECTS = [
 {
     PROJECTS.map((project) => (
         <div class="container border border-secondary rounded-2xl my-6 px-6 py-4">
-            <ProjectItem {...project} />
+            <ProjectItem 
+                title={project.title}
+                description={project.description}
+                link={project.link}
+                img={project.img}
+                tags={project.tags}
+            />
         </div>
     ))
 }

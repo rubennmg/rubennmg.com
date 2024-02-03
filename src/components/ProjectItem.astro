@@ -4,15 +4,31 @@ interface Props {
     description: string;
     link?: string;
     img?: string;
+    tags: {
+        name: string;
+        class: string;
+        icon: (_props: Record<string, any>) => any;
+    }[];
 }
 
-const { title, description, link, img } = Astro.props;
+const { title, description, link, img, tags } = Astro.props;
 ---
 
 <div class="col-span-1 row-span-1 order-1">
     <p class="text-2xl font-bold text-df-text mb-2">
         {title}
     </p>
+    <ul class="flex gap-x-2 flex-row mb-2">
+        {(tags).map((tag) => (
+            <li>
+                <span class={`flex gap-x-2 rounded-full text-xs ${tag.class} py-1 px-2 `}>
+                    <tag.icon class="size-4" />
+                    {tag.name}
+                </span>
+            </li>
+        ))}
+    </ul>
+    
 </div>
 
 <div class="col-1 row-span-1 order-3">
