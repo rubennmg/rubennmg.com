@@ -1,0 +1,25 @@
+---
+import ExperienceItem from "./ExperienceItem.astro"
+
+const EXPERIENCE = [
+    {
+        title: "Desarrollador full stack",
+        place: "Neosystems",
+        date: "feb. 2024 - actualidad",
+        description: "Contrato de prácticas",
+        link: "https://neosystems.es/",
+    }
+]
+---
+
+<ol class="relative z-40 border-s border-secondary ml-3">
+    {
+        EXPERIENCE.map((experience) => (
+            <li class="mb-10 ms-4">
+            <ExperienceItem {...experience} />
+        </li>
+        ))
+    }
+</ol>
+
+
