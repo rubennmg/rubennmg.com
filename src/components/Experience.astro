@@ -1,25 +1,32 @@
 ---
-import ExperienceItem from "./ExperienceItem.astro"
+import ExperienceItem from "./ExperienceItem.astro";
 
 const EXPERIENCE = [
+    {
+        title: "Desarrollador de software",
+        place: "Futuver",
+        date: "oct. 2024 - actualidad",
+        description: "Contrato de prácticas",
+        link: "https://futuver.com/",
+        logo: "futu_logo.jpg",
+    },
     {
         title: "Desarrollador full stack",
         place: "Neosystems",
         date: "feb. 2024 - ago. 2024",
         description: "Contrato de prácticas",
         link: "https://neosystems.es/",
-    }
-]
+        logo: "neosystems_logo.jpeg",
+    },
+];
 ---
 
 <ol class="relative z-40 border-s border-secondary ml-3">
     {
         EXPERIENCE.map((experience) => (
             <li class="mb-10 ms-4">
-            <ExperienceItem {...experience} />
-        </li>
+                <ExperienceItem {...experience} />
+            </li>
         ))
     }
 </ol>
-
-
