@@ -1,37 +1,39 @@
 ---
-import EducationItem from "./EducationItem.astro"
+import EducationItem from "./EducationItem.astro";
 
 const EDUCATION = [
-{
+    {
         title: "Máster en Ingeniería Informática en TI",
         place: "Universidad de Oviedo",
         date: "sept. 2024 - actualidad",
-        description: "Cursando el Máster en Ingeniería Informática en Tecnologías de la Información",
-        link: "https://www.uniovi.es"
+        description:
+            "Cursando el Máster en Ingeniería Informática en Tecnologías de la Información",
+        link: "https://www.uniovi.es",
     },
     {
         title: "Grado en Ingeniería Informática en TI",
         place: "Universidad de Oviedo",
         date: "sept. 2020 - jun. 2024",
-        description: "Cursado el Grado en Ingeniería Informática en Tecnologías de la Información",
-        link: "https://www.uniovi.es"
+        description:
+            "Cursado el Grado en Ingeniería Informática en Tecnologías de la Información",
+        link: "https://www.uniovi.es",
     },
     {
         title: "Bachillerato en modalidad tecnológica",
         place: "IES Jovellanos",
         date: "sept. 2018 - jun. 2020",
         description: "Cursado el Bachillerato en modalidad tecnológica",
-        link: "https://www.iesjovellanos.com"
-    }
-]
+        link: "https://www.iesjovellanos.com",
+    },
+];
 ---
 
 <ol class="relative z-40 border-s border-secondary ml-3">
     {
         EDUCATION.map((education) => (
             <li class="mb-10 ms-4">
-            <EducationItem {...education} />
-        </li>
+                <EducationItem {...education} />
+            </li>
         ))
     }
 </ol>

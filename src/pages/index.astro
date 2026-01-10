@@ -1,54 +1,60 @@
 ---
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import SectionContainer from '../components/SectionContainer.astro';
-import SocialPill from '../components/SocialPill.astro';
-import Education from '../components/Education.astro';
-import Projects from '../components/Projects.astro';
-import Experience from '../components/Experience.astro';
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import SectionContainer from "../components/SectionContainer.astro";
+import SocialPill from "../components/SocialPill.astro";
+import Education from "../components/Education.astro";
+import Projects from "../components/Projects.astro";
+import Experience from "../components/Experience.astro";
 ---
 
 <html lang="es">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/person.svg" />
-		<title>rubennmg</title>
-	</head>
-	<body class="bg-bodyback">
-		<Header />
-		<main>
-			<SectionContainer id="about">
-				<h1 class="text-4xl font-bold text-df-text">Rubén Martínez Ginzo</h1>
-				<p class="text-xl text-df-text text-opacity-70 mb-4">Estudiante</p>
-				<p class="text-lg text-df-text">Soy Rubén</p>
-				<nav class="flex gap-4 mt-8 flex-wrap">
-					<SocialPill href="https://github.com/rubennmg">
-						<img class="w-6" src="github.svg">
-						GitHub
-					</SocialPill>
-					<SocialPill href="https://www.linkedin.com/in/rubennmg">
-						<img class="w-5" src="linkedin.svg">
-						LinkedIn
-					</SocialPill>
-				</nav>
-			</SectionContainer>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/person.svg" />
+        <title>rubennmg</title>
+    </head>
+    <body class="bg-bodyback">
+        <Header />
+        <main>
+            <SectionContainer id="about">
+                <h1 class="text-4xl font-bold text-df-text">
+                    Rubén Martínez Ginzo
+                </h1>
+                <p class="text-xl text-df-text text-opacity-70 mb-4">
+                    Estudiante
+                </p>
+                <p class="text-lg text-df-text">Soy Rubén</p>
+                <nav class="flex gap-4 mt-8 flex-wrap">
+                    <SocialPill href="https://github.com/rubennmg">
+                        <img class="w-6" src="github.svg" />
+                        GitHub
+                    </SocialPill>
+                    <SocialPill href="https://www.linkedin.com/in/rubennmg">
+                        <img class="w-5" src="linkedin.svg" />
+                        LinkedIn
+                    </SocialPill>
+                </nav>
+            </SectionContainer>
 
-			<SectionContainer id="experience">
-				<h2 class="text-4xl font-bold text-df-text mb-8">Experiencia</h2>
-				<Experience />
-			</SectionContainer>
+            <SectionContainer id="experience">
+                <h2 class="text-4xl font-bold text-df-text mb-8">
+                    Experiencia
+                </h2>
+                <Experience />
+            </SectionContainer>
 
-			<SectionContainer id="education">
-				<h2 class="text-4xl font-bold text-df-text mb-8">Formación</h2>
-				<Education />
-			</SectionContainer>
+            <SectionContainer id="education">
+                <h2 class="text-4xl font-bold text-df-text mb-8">Formación</h2>
+                <Education />
+            </SectionContainer>
 
-			<SectionContainer id="projects">
-				<h2 class="text-4xl font-bold text-df-text mb-8">Proyectos</h2>
-				<Projects />
-			</SectionContainer>
-		</main>
+            <SectionContainer id="projects">
+                <h2 class="text-4xl font-bold text-df-text mb-8">Proyectos</h2>
+                <Projects />
+            </SectionContainer>
+        </main>
 
-		<Footer />
-	</body>
+        <Footer />
+    </body>
 </html>
