@@ -1,0 +1,28 @@
+name: Delete Merged Feature Branches
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - develop
+
+permissions:
+  contents: write
+
+jobs:
+  delete-feature-branch:
+    name: Delete feature branch
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'feature/')
+
+    steps:
+      - name: Delete remote branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: gh api --method DELETE "repos/${REPOSITORY}/git/refs/heads/${BRANCH}"
