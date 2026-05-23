@@ -12,6 +12,9 @@
 - `ADMIN_USERNAME`: initial admin username used by the seed script.
 - `ADMIN_PASSWORD`: initial admin password used by the seed script.
 - `ENABLE_DEMO_DATA`: enables optional demo data in staging when set to `true`.
+- `AUTH_SECRET_KEY`: secret key used to sign session and CSRF tokens.
+- `AUTH_COOKIE_NAME`: HttpOnly session cookie name.
+- `AUTH_SESSION_DAYS`: session duration in days.
 
 ## Database Variables
 

@@ -37,6 +37,9 @@ services:
             ADMIN_USERNAME: ${ADMIN_USERNAME}
             ADMIN_PASSWORD: ${ADMIN_PASSWORD}
             ENABLE_DEMO_DATA: ${ENABLE_DEMO_DATA:-false}
+            AUTH_SECRET_KEY: ${AUTH_SECRET_KEY}
+            AUTH_COOKIE_NAME: ${AUTH_COOKIE_NAME:-rubennmg_session}
+            AUTH_SESSION_DAYS: ${AUTH_SESSION_DAYS:-7}
         depends_on:
             - db
         networks:
