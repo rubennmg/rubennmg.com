@@ -1,0 +1,7 @@
+rubennmg.cloud, www.rubennmg.cloud {
+    reverse_proxy frontend:80
+}
+
+api.rubennmg.cloud {
+    reverse_proxy backend:8000
+}

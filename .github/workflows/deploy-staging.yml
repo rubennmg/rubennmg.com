@@ -1,0 +1,45 @@
+name: Deploy Staging
+
+on:
+    push:
+        branches:
+            - develop
+
+concurrency:
+    group: deploy-staging
+    cancel-in-progress: false
+
+jobs:
+    deploy:
+        name: Deploy to VPS
+        runs-on: ubuntu-latest
+        environment: staging
+
+        steps:
+            - name: Configure SSH
+              env:
+                  VPS_HOST: ${{ secrets.VPS_HOST }}
+                  VPS_USER: ${{ secrets.VPS_USER }}
+                  VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+              run: |
+                  mkdir -p ~/.ssh
+                  chmod 700 ~/.ssh
+                  printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+                  chmod 600 ~/.ssh/deploy_key
+                  ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+            - name: Deploy staging stack
+              env:
+                  VPS_HOST: ${{ secrets.VPS_HOST }}
+                  VPS_USER: ${{ secrets.VPS_USER }}
+              run: |
+                  ssh -i ~/.ssh/deploy_key "$VPS_USER@$VPS_HOST" <<'EOF'
+                    set -e
+                    cd /home/deploy/apps/rubennmg.com
+                    git fetch origin
+                    git checkout develop
+                    git reset --hard origin/develop
+                    cd infra/staging
+                    docker compose --env-file .env.staging -f compose.yml up -d --build
+                    docker image prune -f
+                  EOF
