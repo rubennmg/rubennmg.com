@@ -35,3 +35,14 @@ ADMIN_USERNAME=admin ADMIN_PASSWORD=change-me python -m app.scripts.seed
 ```
 
 The seed is idempotent and can be run multiple times without duplicating games or users.
+
+## Auth
+
+Admin auth endpoints:
+
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `GET /api/auth/csrf`
+
+Sessions are signed tokens stored in an HttpOnly cookie. Set `AUTH_SECRET_KEY` to a strong secret outside local development.
