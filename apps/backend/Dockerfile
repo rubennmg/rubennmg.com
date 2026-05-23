@@ -7,6 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 COPY app ./app
 COPY pyproject.toml ./
+COPY alembic.ini ./
 RUN pip install --no-cache-dir -e .
 
 EXPOSE 8000
