@@ -21,7 +21,7 @@
 
 Never commit real `.env`, `.env.production` or `.env.staging` files.
 
-## GitHub Actions Secrets
+## Staging GitHub Actions Secrets
 
 The `staging` environment requires:
 
@@ -30,3 +30,14 @@ The `staging` environment requires:
 - `VPS_SSH_KEY`: private SSH key used by GitHub Actions to connect to the VPS.
 
 Do not reuse a personal SSH key. Create a dedicated key for staging deployments.
+
+## Production GitHub Actions Secrets
+
+The `production` environment requires:
+
+- `PREMIUM_FTP_HOST`: FTP/SFTP hostname from Hostinger Premium Web Hosting.
+- `PREMIUM_FTP_USER`: FTP user for the production site.
+- `PREMIUM_FTP_PASSWORD`: FTP password for the production site.
+- `PREMIUM_FTP_TARGET_DIR`: remote public directory for `rubennmg.com`.
+
+Production currently deploys only `apps/frontend/dist/`; it does not deploy backend services or PostgreSQL.
