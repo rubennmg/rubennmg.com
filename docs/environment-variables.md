@@ -20,3 +20,13 @@
 - `infra/staging/.env.staging`: real staging values on the VPS, ignored by Git.
 
 Never commit real `.env`, `.env.production` or `.env.staging` files.
+
+## GitHub Actions Secrets
+
+The `staging` environment requires:
+
+- `VPS_HOST`: VPS hostname or IP address.
+- `VPS_USER`: SSH user, expected to be `deploy`.
+- `VPS_SSH_KEY`: private SSH key used by GitHub Actions to connect to the VPS.
+
+Do not reuse a personal SSH key. Create a dedicated key for staging deployments.
