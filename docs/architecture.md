@@ -58,7 +58,7 @@ flowchart TD
     Backend --> Postgres[(PostgreSQL)]
 ```
 
-## Included In v1
+## Infrastructure Base
 
 - Monorepo layout.
 - Static Astro frontend under `apps/frontend`.
@@ -70,13 +70,21 @@ flowchart TD
 - Dependabot.
 - Documentation.
 
-## Not Included In v1
+## Board Games Rankings Functional v1
 
-- Admin login.
-- Cookies or auth sessions.
-- Players CRUD.
-- Matches CRUD.
-- Real rankings.
-- Functional `/admin` panel.
+- Public game pages and rankings under `/games`.
+- Admin login with HttpOnly cookies.
+- CSRF protection for admin mutations.
+- Players management under `/admin/players`.
+- Matches management under `/admin/matches`.
+- Rankings calculated from individual matches.
+- PostgreSQL data model with Alembic migrations.
+
+See `docs/board-games-rankings.md` for functional routes, API endpoints and validation rules.
+
+## Not Included Yet
+
+- Public links from the portfolio to `/games`.
+- Admin game creation; games are seeded in v1.
 - Production backend on the VPS.
 - CodeQL.

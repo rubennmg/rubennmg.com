@@ -546,6 +546,58 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? "http://127.0.0.1:8000";
                     })
                     .filter((result) => result.player_id);
 
+            const validateMatchPayload = (payload) => {
+                const game = games.find(
+                    (candidate) => candidate.slug === payload.game_slug,
+                );
+                if (!game) return "Selecciona un juego válido.";
+
+                if (payload.results.length < game.min_players) {
+                    return `${game.display_name} requiere al menos ${game.min_players} jugadores.`;
+                }
+
+                const playerIds = payload.results.map(
+                    (result) => result.player_id,
+                );
+                if (new Set(playerIds).size !== playerIds.length) {
+                    return "No puedes repetir jugadores en la misma partida.";
+                }
+
+                const winners = payload.results.filter(
+                    (result) => result.is_winner,
+                );
+                if (winners.length !== 1) {
+                    return "Marca exactamente un ganador.";
+                }
+
+                const hasInvalidScore = payload.results.some(
+                    (result) =>
+                        !Number.isFinite(result.score) || result.score < 0,
+                );
+                if (hasInvalidScore) {
+                    return "Todos los puntos deben ser números iguales o superiores a 0.";
+                }
+
+                const hasInvalidPosition = payload.results.some(
+                    (result) =>
+                        result.position !== null &&
+                        (!Number.isFinite(result.position) ||
+                            result.position < 1),
+                );
+                if (hasInvalidPosition) {
+                    return "Las posiciones deben ser números superiores a 0.";
+                }
+
+                if (
+                    game.ranking_strategy === "catan_default" &&
+                    payload.results.some((result) => result.position === null)
+                ) {
+                    return "Catán requiere posición para todos los jugadores.";
+                }
+
+                return null;
+            };
+
             async function ensureSessionAndCsrf() {
                 const sessionResponse = await request("/api/auth/me");
                 if (sessionResponse.status === 401) {
@@ -619,6 +671,13 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? "http://127.0.0.1:8000";
                     notes: notesInput.value.trim() || null,
                     results: collectResults(),
                 };
+
+                const validationError = validateMatchPayload(payload);
+                if (validationError) {
+                    setFormMessage(validationError, "error");
+                    saveButton.disabled = false;
+                    return;
+                }
 
                 try {
                     const response = await request(

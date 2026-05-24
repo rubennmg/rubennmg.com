@@ -116,6 +116,7 @@ PostgreSQL is private to Docker and is not exposed on the host.
 ## Documentation
 
 - `docs/architecture.md`
+- `docs/board-games-rankings.md`
 - `docs/git-workflow.md`
 - `docs/local-development.md`
 - `docs/deployment-staging.md`
