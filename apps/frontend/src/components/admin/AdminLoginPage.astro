@@ -1,0 +1,192 @@
+---
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+---
+
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/svg+xml" href="/person.svg" />
+        <title>Admin Login | rubennmg</title>
+    </head>
+    <body class="min-h-screen bg-[#080910] text-[#f8f3ea]">
+        <main
+            class="relative flex min-h-screen items-center justify-center px-4 py-10"
+        >
+            <div
+                class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_20%,rgba(241,170,78,0.16),transparent_30%),radial-gradient(circle_at_80%_0%,rgba(168,178,209,0.14),transparent_24%),linear-gradient(135deg,#080910_0%,#151720_55%,#090a0f_100%)]"
+            >
+            </div>
+
+            <section class="w-full max-w-md">
+                <a
+                    href="/"
+                    class="mb-8 inline-flex text-sm font-semibold text-[#c9c3b7] transition hover:text-white"
+                >
+                    ← Volver al portfolio
+                </a>
+
+                <div
+                    class="rounded-[2rem] border border-white/10 bg-white/[0.06] p-8 shadow-2xl shadow-black/30 backdrop-blur"
+                >
+                    <p
+                        class="text-sm font-bold uppercase tracking-[0.35em] text-[#f1aa4e]"
+                    >
+                        Administración
+                    </p>
+                    <h1
+                        class="mt-4 text-4xl font-black tracking-tight text-white"
+                    >
+                        Iniciar sesión
+                    </h1>
+                    <p class="mt-3 text-sm leading-6 text-[#c9c3b7]">
+                        Acceso privado para gestionar jugadores y partidas.
+                    </p>
+
+                    <div
+                        id="session-check"
+                        class="mt-6 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-[#c9c3b7]"
+                    >
+                        Comprobando sesión...
+                    </div>
+
+                    <form id="login-form" class="mt-6 space-y-5">
+                        <div>
+                            <label
+                                for="username"
+                                class="block text-sm font-semibold text-[#f8f3ea]"
+                            >
+                                Usuario
+                            </label>
+                            <input
+                                id="username"
+                                name="username"
+                                type="text"
+                                autocomplete="username"
+                                required
+                                class="mt-2 w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-white outline-none transition placeholder:text-[#777] focus:border-[#f1aa4e]/70 focus:ring-4 focus:ring-[#f1aa4e]/10"
+                                placeholder="admin"
+                            />
+                        </div>
+
+                        <div>
+                            <label
+                                for="password"
+                                class="block text-sm font-semibold text-[#f8f3ea]"
+                            >
+                                Contraseña
+                            </label>
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                autocomplete="current-password"
+                                required
+                                class="mt-2 w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-white outline-none transition placeholder:text-[#777] focus:border-[#f1aa4e]/70 focus:ring-4 focus:ring-[#f1aa4e]/10"
+                                placeholder="••••••••"
+                            />
+                        </div>
+
+                        <p
+                            id="login-error"
+                            class="hidden rounded-2xl border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100"
+                            role="alert"
+                        >
+                            No se pudo iniciar sesión.
+                        </p>
+
+                        <button
+                            id="login-button"
+                            type="submit"
+                            class="w-full rounded-full border border-[#f1aa4e]/70 bg-[#f1aa4e] px-6 py-3 text-sm font-black text-[#151008] shadow-lg shadow-[#f1aa4e]/20 transition hover:-translate-y-0.5 hover:bg-[#ffd18a] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            Entrar
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </main>
+
+        <script is:inline define:vars={{ apiUrl }}>
+            const form = document.getElementById("login-form");
+            const errorMessage = document.getElementById("login-error");
+            const loginButton = document.getElementById("login-button");
+            const sessionCheck = document.getElementById("session-check");
+
+            const showError = (message) => {
+                errorMessage.textContent = message;
+                errorMessage.classList.remove("hidden");
+            };
+
+            async function checkSession() {
+                try {
+                    const response = await fetch(`${apiUrl}/api/auth/me`, {
+                        headers: { Accept: "application/json" },
+                        credentials: "include",
+                    });
+
+                    if (response.ok) {
+                        window.location.assign("/admin");
+                        return;
+                    }
+                } catch (error) {
+                    sessionCheck.textContent =
+                        "No se pudo comprobar la sesión. Puedes intentar iniciar sesión igualmente.";
+                    return;
+                }
+
+                sessionCheck.classList.add("hidden");
+            }
+
+            form.addEventListener("submit", async (event) => {
+                event.preventDefault();
+                errorMessage.classList.add("hidden");
+                loginButton.disabled = true;
+                loginButton.textContent = "Entrando...";
+
+                const formData = new FormData(form);
+
+                try {
+                    const response = await fetch(`${apiUrl}/api/auth/login`, {
+                        method: "POST",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json",
+                        },
+                        credentials: "include",
+                        body: JSON.stringify({
+                            username: String(formData.get("username") ?? ""),
+                            password: String(formData.get("password") ?? ""),
+                        }),
+                    });
+
+                    if (response.ok) {
+                        window.location.assign("/admin");
+                        return;
+                    }
+
+                    if (response.status === 401) {
+                        showError("Usuario o contraseña incorrectos.");
+                        return;
+                    }
+
+                    if (response.status === 429) {
+                        showError(
+                            "Demasiados intentos fallidos. Espera unos minutos antes de probar de nuevo.",
+                        );
+                        return;
+                    }
+
+                    showError("No se pudo iniciar sesión. Inténtalo de nuevo.");
+                } catch (error) {
+                    showError("No se pudo conectar con la API local/remota.");
+                } finally {
+                    loginButton.disabled = false;
+                    loginButton.textContent = "Entrar";
+                }
+            });
+
+            checkSession();
+        </script>
+    </body>
+</html>
