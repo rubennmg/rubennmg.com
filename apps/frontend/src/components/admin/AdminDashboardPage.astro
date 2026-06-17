@@ -1,0 +1,185 @@
+---
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+---
+
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/svg+xml" href="/person.svg" />
+        <title>Admin | rubennmg</title>
+    </head>
+    <body class="min-h-screen bg-[#080910] text-[#f8f3ea]">
+        <main
+            class="relative min-h-screen overflow-hidden px-4 py-8 sm:px-8 lg:px-12"
+        >
+            <div
+                class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_15%_10%,rgba(241,170,78,0.15),transparent_28%),radial-gradient(circle_at_85%_20%,rgba(168,178,209,0.12),transparent_24%),linear-gradient(135deg,#080910_0%,#14141d_55%,#0b0d12_100%)]"
+            >
+            </div>
+
+            <section class="mx-auto max-w-6xl">
+                <nav
+                    class="mb-10 flex items-center justify-between gap-4 text-sm text-[#cacaca]"
+                >
+                    <a href="/" class="transition hover:text-white"
+                        >← Portfolio</a
+                    >
+                    <button
+                        id="logout-button"
+                        type="button"
+                        class="hidden rounded-full border border-white/15 bg-white/5 px-4 py-2 font-semibold text-[#f6f1e8] transition hover:bg-white/10"
+                    >
+                        Cerrar sesión
+                    </button>
+                </nav>
+
+                <section
+                    id="loading-state"
+                    class="rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-[#c9c3b7]"
+                >
+                    Comprobando sesión...
+                </section>
+
+                <section id="admin-content" class="hidden">
+                    <header
+                        class="grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end"
+                    >
+                        <div>
+                            <p
+                                class="mb-4 text-sm font-bold uppercase tracking-[0.35em] text-[#f1aa4e]"
+                            >
+                                Panel privado
+                            </p>
+                            <h1
+                                class="text-4xl font-black tracking-tight text-white sm:text-6xl"
+                            >
+                                Administración
+                            </h1>
+                            <p
+                                class="mt-5 max-w-2xl text-lg leading-8 text-[#c9c3b7]"
+                            >
+                                Sesión iniciada como <span
+                                    id="admin-username"
+                                    class="font-bold text-white"></span>. Esta
+                                PR deja preparado el acceso; las pantallas de
+                                gestión llegarán en PRs separadas.
+                            </p>
+                        </div>
+                        <div
+                            class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 shadow-2xl shadow-black/30 backdrop-blur"
+                        >
+                            <p
+                                class="text-sm uppercase tracking-[0.28em] text-[#a8b2d1]"
+                            >
+                                Estado
+                            </p>
+                            <p class="mt-3 text-2xl font-bold text-white">
+                                Autenticado
+                            </p>
+                            <p class="mt-2 text-sm text-[#cacaca]">
+                                Cookie HttpOnly validada contra la API.
+                            </p>
+                        </div>
+                    </header>
+
+                    <div class="mt-12 grid gap-4 md:grid-cols-2">
+                        <a
+                            href="/admin/players"
+                            class="rounded-3xl border border-white/10 bg-white/[0.05] p-6"
+                        >
+                            <p
+                                class="text-sm uppercase tracking-[0.25em] text-[#a8b2d1]"
+                            >
+                                Jugadores
+                            </p>
+                            <h2 class="mt-3 text-2xl font-black text-white">
+                                Próxima pantalla
+                            </h2>
+                            <p class="mt-3 text-sm leading-6 text-[#c9c3b7]">
+                                Alta, edición y activación de jugadores usando
+                                la API admin existente.
+                            </p>
+                        </a>
+                        <a
+                            href="/admin/matches"
+                            class="rounded-3xl border border-white/10 bg-white/[0.05] p-6"
+                        >
+                            <p
+                                class="text-sm uppercase tracking-[0.25em] text-[#a8b2d1]"
+                            >
+                                Partidas
+                            </p>
+                            <h2 class="mt-3 text-2xl font-black text-white">
+                                Siguiente bloque
+                            </h2>
+                            <p class="mt-3 text-sm leading-6 text-[#c9c3b7]">
+                                Registro y edición de partidas con protección
+                                CSRF.
+                            </p>
+                        </a>
+                    </div>
+                </section>
+
+                <section
+                    id="error-state"
+                    class="mt-12 hidden rounded-[2rem] border border-red-400/30 bg-red-500/10 p-8 text-red-100"
+                >
+                    No se pudo comprobar la sesión. Vuelve a iniciar sesión.
+                </section>
+            </section>
+        </main>
+
+        <script is:inline define:vars={{ apiUrl }}>
+            const loadingState = document.getElementById("loading-state");
+            const adminContent = document.getElementById("admin-content");
+            const errorState = document.getElementById("error-state");
+            const adminUsername = document.getElementById("admin-username");
+            const logoutButton = document.getElementById("logout-button");
+
+            const show = (element) => element?.classList.remove("hidden");
+            const hide = (element) => element?.classList.add("hidden");
+
+            async function loadSession() {
+                try {
+                    const response = await fetch(`${apiUrl}/api/auth/me`, {
+                        headers: { Accept: "application/json" },
+                        credentials: "include",
+                    });
+
+                    if (response.status === 401) {
+                        window.location.replace("/admin/login");
+                        return;
+                    }
+
+                    if (!response.ok) throw new Error("Session request failed");
+
+                    const data = await response.json();
+                    adminUsername.textContent = data.user.username;
+                    hide(loadingState);
+                    show(adminContent);
+                    show(logoutButton);
+                } catch (error) {
+                    hide(loadingState);
+                    show(errorState);
+                }
+            }
+
+            logoutButton.addEventListener("click", async () => {
+                logoutButton.disabled = true;
+                logoutButton.textContent = "Saliendo...";
+
+                try {
+                    await fetch(`${apiUrl}/api/auth/logout`, {
+                        method: "POST",
+                        credentials: "include",
+                    });
+                } finally {
+                    window.location.assign("/admin/login");
+                }
+            });
+
+            loadSession();
+        </script>
+    </body>
+</html>

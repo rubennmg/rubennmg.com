@@ -9,6 +9,12 @@
 - `APP_ENV`: runtime environment name, for example `staging`.
 - `CORS_ALLOWED_ORIGINS`: comma-separated list of allowed frontend origins.
 - `DATABASE_URL`: SQLAlchemy database URL. In staging it is composed inside Docker Compose from `POSTGRES_PASSWORD`.
+- `ADMIN_USERNAME`: initial admin username used by the seed script.
+- `ADMIN_PASSWORD`: initial admin password used by the seed script.
+- `ENABLE_DEMO_DATA`: enables optional demo data in staging when set to `true`.
+- `AUTH_SECRET_KEY`: secret key used to sign session and CSRF tokens.
+- `AUTH_COOKIE_NAME`: HttpOnly session cookie name.
+- `AUTH_SESSION_DAYS`: session duration in days.
 
 ## Database Variables
 

@@ -1,0 +1,274 @@
+---
+interface Props {
+    gameName: string;
+    gameSlug: string;
+    subtitle: string;
+    accentLabel: string;
+}
+
+const { gameName, gameSlug, subtitle, accentLabel } = Astro.props;
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+---
+
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/svg+xml" href="/person.svg" />
+        <title>{gameName} Ranking | rubennmg</title>
+    </head>
+    <body class="min-h-screen bg-[#080910] text-[#f8f3ea]">
+        <main
+            class="relative min-h-screen overflow-hidden px-4 py-8 sm:px-8 lg:px-12"
+        >
+            <div
+                class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_15%_10%,rgba(247,207,61,0.16),transparent_28%),radial-gradient(circle_at_85%_20%,rgba(168,178,209,0.12),transparent_24%),linear-gradient(135deg,#080910_0%,#14141d_55%,#0b0d12_100%)]"
+            >
+            </div>
+
+            <section class="mx-auto max-w-7xl">
+                <nav
+                    class="mb-10 flex items-center justify-between gap-4 text-sm text-[#cacaca]"
+                >
+                    <a
+                        href={`/games/${gameSlug}`}
+                        class="transition hover:text-white">← {gameName}</a
+                    >
+                    <a href="/" class="transition hover:text-white">Portfolio</a
+                    >
+                </nav>
+
+                <header
+                    class="grid gap-8 lg:grid-cols-[1.35fr_0.65fr] lg:items-end"
+                >
+                    <div>
+                        <p
+                            class="mb-4 text-sm font-bold uppercase tracking-[0.35em] text-[#f1aa4e]"
+                        >
+                            {accentLabel}
+                        </p>
+                        <h1
+                            class="text-4xl font-black tracking-tight text-white sm:text-6xl"
+                        >
+                            Ranking de {gameName}
+                        </h1>
+                        <p
+                            class="mt-5 max-w-2xl text-lg leading-8 text-[#c9c3b7]"
+                        >
+                            {subtitle}
+                        </p>
+                    </div>
+                    <div
+                        class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 shadow-2xl shadow-black/30 backdrop-blur"
+                    >
+                        <p
+                            class="text-sm uppercase tracking-[0.28em] text-[#a8b2d1]"
+                        >
+                            Actualización
+                        </p>
+                        <p class="mt-3 text-2xl font-bold text-white">
+                            Desde partidas registradas
+                        </p>
+                        <p class="mt-2 text-sm text-[#cacaca]">
+                            Los rankings no se editan manualmente.
+                        </p>
+                    </div>
+                </header>
+
+                <section
+                    id="loading-state"
+                    class="mt-12 rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-[#c9c3b7]"
+                >
+                    Cargando ranking...
+                </section>
+
+                <section
+                    id="error-state"
+                    class="mt-12 hidden rounded-[2rem] border border-red-400/30 bg-red-500/10 p-8 text-red-100"
+                >
+                    No se pudo cargar el ranking. Inténtalo de nuevo más tarde.
+                </section>
+
+                <section
+                    id="empty-state"
+                    class="mt-12 hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-[#c9c3b7]"
+                >
+                    Todavía no hay partidas registradas para este juego.
+                </section>
+
+                <section id="ranking-content" class="mt-12 hidden">
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <article
+                            class="rounded-3xl border border-white/10 bg-white/[0.05] p-6"
+                        >
+                            <p
+                                class="text-sm uppercase tracking-[0.25em] text-[#a8b2d1]"
+                            >
+                                Jugadores
+                            </p>
+                            <p
+                                id="total-players"
+                                class="mt-3 text-4xl font-black text-white"
+                            >
+                                0
+                            </p>
+                        </article>
+                        <article
+                            class="rounded-3xl border border-white/10 bg-white/[0.05] p-6"
+                        >
+                            <p
+                                class="text-sm uppercase tracking-[0.25em] text-[#a8b2d1]"
+                            >
+                                Partidas
+                            </p>
+                            <p
+                                id="total-matches"
+                                class="mt-3 text-4xl font-black text-white"
+                            >
+                                0
+                            </p>
+                        </article>
+                        <article
+                            class="rounded-3xl border border-white/10 bg-white/[0.05] p-6"
+                        >
+                            <p
+                                class="text-sm uppercase tracking-[0.25em] text-[#a8b2d1]"
+                            >
+                                Líder
+                            </p>
+                            <p
+                                id="ranking-leader"
+                                class="mt-3 text-4xl font-black text-white"
+                            >
+                                -
+                            </p>
+                        </article>
+                    </div>
+
+                    <div
+                        id="podium"
+                        class="mt-8 grid gap-4 md:grid-cols-3 md:items-end"
+                    >
+                    </div>
+
+                    <div
+                        class="mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04]"
+                    >
+                        <div class="overflow-x-auto">
+                            <table
+                                class="min-w-full divide-y divide-white/10 text-left text-sm"
+                            >
+                                <thead
+                                    class="bg-white/[0.04] text-xs uppercase tracking-[0.18em] text-[#a8b2d1]"
+                                >
+                                    <tr>
+                                        <th class="px-5 py-4">#</th>
+                                        <th class="px-5 py-4">Jugador</th>
+                                        <th class="px-5 py-4">Partidas</th>
+                                        <th class="px-5 py-4">Victorias</th>
+                                        <th class="px-5 py-4">Puntos</th>
+                                        <th class="px-5 py-4">Media</th>
+                                        <th class="px-5 py-4">Win rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody
+                                    id="ranking-table"
+                                    class="divide-y divide-white/10 text-[#f8f3ea]"
+                                ></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </main>
+
+        <script is:inline define:vars={{ apiUrl, gameSlug }}>
+            const loadingState = document.getElementById("loading-state");
+            const errorState = document.getElementById("error-state");
+            const emptyState = document.getElementById("empty-state");
+            const rankingContent = document.getElementById("ranking-content");
+            const podium = document.getElementById("podium");
+            const table = document.getElementById("ranking-table");
+
+            const formatNumber = (value) =>
+                new Intl.NumberFormat("es-ES", {
+                    maximumFractionDigits: 2,
+                }).format(value);
+
+            const show = (element) => element?.classList.remove("hidden");
+            const hide = (element) => element?.classList.add("hidden");
+
+            const podiumCard = (row, index) => {
+                const heights = [
+                    "md:min-h-[15rem]",
+                    "md:min-h-[12rem]",
+                    "md:min-h-[10rem]",
+                ];
+                const medals = ["🥇", "🥈", "🥉"];
+                return `
+                    <article class="${heights[index]} rounded-[2rem] border border-[#f1aa4e]/25 bg-gradient-to-br from-white/[0.10] to-white/[0.03] p-6 shadow-xl shadow-black/20">
+                        <div class="text-3xl">${medals[index]}</div>
+                        <p class="mt-4 text-sm uppercase tracking-[0.25em] text-[#a8b2d1]">Puesto ${row.position}</p>
+                        <h2 class="mt-2 text-3xl font-black text-white">${row.player_name}</h2>
+                        <div class="mt-5 grid grid-cols-2 gap-3 text-sm text-[#c9c3b7]">
+                            <span>${row.wins} victorias</span>
+                            <span>${formatNumber(row.win_rate)}%</span>
+                            <span>${row.total_points} pts</span>
+                            <span>${formatNumber(row.average_points)} media</span>
+                        </div>
+                    </article>
+                `;
+            };
+
+            const tableRow = (row) => `
+                <tr class="transition hover:bg-white/[0.04]">
+                    <td class="px-5 py-4 font-bold text-[#f1aa4e]">${row.position}</td>
+                    <td class="px-5 py-4 font-semibold text-white">${row.player_name}</td>
+                    <td class="px-5 py-4">${row.matches_played}</td>
+                    <td class="px-5 py-4">${row.wins}</td>
+                    <td class="px-5 py-4">${row.total_points}</td>
+                    <td class="px-5 py-4">${formatNumber(row.average_points)}</td>
+                    <td class="px-5 py-4">${formatNumber(row.win_rate)}%</td>
+                </tr>
+            `;
+
+            async function loadRanking() {
+                try {
+                    const response = await fetch(
+                        `${apiUrl}/api/games/${gameSlug}/rankings`,
+                        {
+                            headers: { Accept: "application/json" },
+                        },
+                    );
+                    if (!response.ok) throw new Error("Ranking request failed");
+
+                    const data = await response.json();
+                    hide(loadingState);
+
+                    if (!data.ranking.length) {
+                        show(emptyState);
+                        return;
+                    }
+
+                    document.getElementById("total-players").textContent =
+                        String(data.summary.total_players);
+                    document.getElementById("total-matches").textContent =
+                        String(data.summary.total_matches);
+                    document.getElementById("ranking-leader").textContent =
+                        data.ranking[0].player_name;
+                    podium.innerHTML = data.ranking
+                        .slice(0, 3)
+                        .map(podiumCard)
+                        .join("");
+                    table.innerHTML = data.ranking.map(tableRow).join("");
+                    show(rankingContent);
+                } catch (error) {
+                    hide(loadingState);
+                    show(errorState);
+                }
+            }
+
+            loadRanking();
+        </script>
+    </body>
+</html>

@@ -5,7 +5,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
 
     app_env: str = Field(default="development", alias="APP_ENV")
     service_name: str = Field(default="rubennmg-api", alias="SERVICE_NAME")
@@ -14,10 +16,24 @@ class Settings(BaseSettings):
         alias="DATABASE_URL",
     )
     cors_allowed_origins: str = Field(default="", alias="CORS_ALLOWED_ORIGINS")
+    admin_username: str = Field(default="admin", alias="ADMIN_USERNAME")
+    admin_password: str = Field(default="change-me", alias="ADMIN_PASSWORD")
+    enable_demo_data: bool = Field(default=False, alias="ENABLE_DEMO_DATA")
+    auth_secret_key: str = Field(default="change-me", alias="AUTH_SECRET_KEY")
+    auth_cookie_name: str = Field(default="rubennmg_session", alias="AUTH_COOKIE_NAME")
+    auth_session_days: int = Field(default=7, alias="AUTH_SESSION_DAYS")
 
     @property
     def allowed_origins(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_allowed_origins.split(",") if origin.strip()]
+        return [
+            origin.strip()
+            for origin in self.cors_allowed_origins.split(",")
+            if origin.strip()
+        ]
+
+    @property
+    def secure_cookies(self) -> bool:
+        return self.app_env not in {"development", "test"}
 
 
 @lru_cache
