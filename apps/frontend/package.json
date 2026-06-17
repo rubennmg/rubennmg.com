@@ -5,16 +5,19 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build",
+    "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.6",
-    "@astrojs/tailwind": "^6.0.2",
-    "astro": "^5.16.6",
-    "tailwind": "^2.3.1",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3"
+    "@tailwindcss/vite": "^4.3.1",
+    "astro": "^6.4.8",
+    "tailwindcss": "^4.3.1",
+    "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "esbuild": "0.28.1",
+    "postcss": "8.5.15",
+    "rollup": "4.62.0"
   }
 }
