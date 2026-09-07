@@ -1,49 +1,101 @@
 ---
-// interface Props {
-
-// }
-
-// const { ... } = Astro.props;
+const { content } = Astro.props;
+const languageHref = content.locale === "es" ? "/en/" : "/";
 ---
 
-<header
-    class="sticky z-50 bg-background border-b border-solid border-b-secondary opacity-95 top-0"
->
-    <div class="max-w-screen-xl flex items-center justify-between mx-52 p-4">
-        <!-- logo -->
-        <img src="/person.svg" alt="logo" class="w-10" />
-        <span
-            class="self-center text-3xl font-semibold whitespace-nowrap text-df-text px-4"
-            >rubennmg</span
+<header class="site-header">
+    <div class="shell flex h-20 items-center justify-between gap-4">
+        <a
+            href={content.locale === "es" ? "/#inicio" : "/en/#home"}
+            class="group flex items-center gap-3"
+            aria-label={content.profile.name}
         >
-        <!-- items -->
-        <div
-            class="container flex items-center justify-center py-2 mx-auto text-gray-600 dark:text-gray-300"
-        >
-            <a
-                class="text-df-text text-xl hover:bg-secondary rounded-xl border border-secondary border-x-2 px-2 py-1 transition mx-2.5"
-                href="#about">sobre mí</a
+            <img
+                src="/me.png"
+                alt=""
+                class="brand-photo"
+                width="433"
+                height="433"
+            />
+            <span class="hidden leading-tight sm:block">
+                <span
+                    class="block text-sm font-extrabold tracking-tight text-df-text"
+                    >{content.profile.name}</span
+                >
+                <span class="block text-xs text-textsoft"
+                    >{content.profile.location}</span
+                >
+            </span>
+        </a>
+        <div class="flex items-center gap-1 sm:gap-3">
+            <nav
+                class="hidden items-center md:flex"
+                aria-label={content.locale === "es"
+                    ? "Navegación principal"
+                    : "Main navigation"}
             >
-
+                {
+                    content.navigation.map((item) => (
+                        <a href={item.href} class="nav-link">
+                            {item.label}
+                        </a>
+                    ))
+                }
+            </nav>
+            <span class="mx-1 hidden h-5 w-px bg-border sm:block"></span>
             <a
-                class="text-df-text text-xl hover:bg-secondary rounded-xl border border-secondary border-x-2 px-2 py-1 transition mx-2.5"
-                href="#experience">experiencia</a
+                href={languageHref}
+                hreflang={content.locale === "es" ? "en" : "es"}
+                class="utility-button"
+                title={content.labels.language}
+                >{content.labels.languageShort}</a
             >
-
-            <a
-                class="text-df-text text-xl hover:bg-secondary rounded-xl border border-secondary border-x-2 px-2 py-1 transition mx-2.5"
-                href="#education">formación</a
+            <button
+                id="theme-toggle"
+                class="utility-button"
+                type="button"
+                aria-label={content.labels.theme}
+                title={content.labels.theme}
             >
-
-            <a
-                class="text-df-text text-xl hover:bg-secondary rounded-xl border border-secondary border-x-2 px-2 py-1 transition mx-2.5"
-                href="#projects">proyectos</a
-            >
-
-            <a
-                class="text-df-text text-xl hover:bg-secondary rounded-xl border border-secondary border-x-2 px-2 py-1 transition mx-2.5"
-                href="/">contacto</a
-            >
+                <svg
+                    class="theme-icon-light size-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    aria-hidden="true"
+                    ><circle cx="12" cy="12" r="4"></circle><path
+                        d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"
+                    ></path></svg
+                >
+                <svg
+                    class="theme-icon-dark size-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    aria-hidden="true"
+                    ><path
+                        d="M20.6 15.4A8.5 8.5 0 0 1 8.6 3.4a8.5 8.5 0 1 0 12 12Z"
+                    ></path></svg
+                >
+            </button>
         </div>
     </div>
+    <nav
+        class="mobile-nav md:hidden"
+        aria-label={content.locale === "es"
+            ? "Navegación principal"
+            : "Main navigation"}
+    >
+        <div class="shell flex overflow-x-auto">
+            {
+                content.navigation.map((item) => (
+                    <a href={item.href} class="nav-link whitespace-nowrap">
+                        {item.label}
+                    </a>
+                ))
+            }
+        </div>
+    </nav>
 </header>
