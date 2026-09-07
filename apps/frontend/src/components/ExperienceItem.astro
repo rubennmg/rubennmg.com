@@ -1,42 +1,49 @@
 ---
-interface Props {
-    title: string;
-    place: string;
-    date: string;
-    description?: string;
-    link: string;
-    logo?: string;
-}
-
-const { title, place, description, date, link } = Astro.props;
+const { title, place, description, date, link, logo, current, currentLabel } =
+    Astro.props;
 ---
 
-<div
-    class="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5 border border-secondary bg-softblue"
+<article
+    class="group grid gap-5 py-7 sm:grid-cols-[10rem_1fr] sm:gap-8 sm:py-9 lg:grid-cols-[13rem_1fr]"
 >
-</div>
-<time class="mb-1 text-sm font-normal leading-none text-textsoft opacity-70">
-    {date}
-</time>
-<div class="grid grid-cols-[11%_89%] mb-4">
-    <div class="">
-        <img src={Astro.props.logo} class="w-16 h-16 rounded-md mt-4 ml-2" />
+    <div>
+        <time
+            class="text-xs font-bold uppercase tracking-[0.16em] text-textsoft"
+            >{date}</time
+        >{
+            current && (
+                <span class="mt-3 flex w-fit items-center gap-2 text-xs font-bold text-accent">
+                    <span class="size-1.5 rounded-full bg-accent" />
+                    {currentLabel}
+                </span>
+            )
+        }
     </div>
-
-    <div class="">
-        <p class="text-2xl font-semibold text-df-text mt-2">
-            {title}
-        </p>
-        <a
-            class="text-lg font-semibold text-df-text hover:text-softblue underline mt-2"
-            href={link}
-            target="_blank"
-        >
-            {place}
-            <a></a>
-            <p class="text-lg font-light text-df-text text-pretty">
+    <div class="flex gap-4 sm:gap-5">
+        {
+            logo && (
+                <img
+                    src={logo}
+                    alt=""
+                    class="size-11 shrink-0 rounded-xl border border-border object-cover sm:size-12"
+                    loading="lazy"
+                />
+            )
+        }
+        <div>
+            <h3
+                class="text-xl font-extrabold tracking-tight text-df-text sm:text-2xl"
+            >
+                {title}
+            </h3><a
+                class="fine-link mt-1 inline-flex font-semibold text-textsoft hover:text-df-text"
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                >{place} <span class="ml-1" aria-hidden="true">↗</span></a
+            ><p class="mt-3 max-w-2xl text-base leading-7 text-textsoft">
                 {description}
             </p>
-        </a>
+        </div>
     </div>
-</div>
+</article>

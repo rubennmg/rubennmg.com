@@ -1,65 +1,393 @@
 ---
-import LinkButton from "./LinkButton.astro";
+import { Image } from "astro:assets";
 
-interface Props {
-    title: string;
-    description: string;
-    link?: string;
-    img?: string;
-    tags: {
-        name: string;
-        class: string;
-        icon: (_props: Record<string, any>) => any;
-    }[];
-}
-
-const { title, description, link, img, tags } = Astro.props;
+const {
+    title,
+    kicker,
+    description,
+    image,
+    images,
+    monogram,
+    link,
+    liveLink,
+    liveLabel,
+    tags,
+    points,
+    codeLabel,
+    carouselLabels,
+    featured,
+} = Astro.props;
 ---
 
-<div class="col-span-1 row-span-1 order-1">
-    <h2 class="flex gap-2 text-2xl font-bold text-white mb-2 underline">
-        <img src="appLogo.svg" class="w-8 mt-0.5" />
-        {title}
-    </h2>
-    <ul class="flex gap-x-2 flex-row mb-1">
-        {
-            tags.map((tag) => (
-                <li>
-                    <span
-                        class={`flex gap-x-2 rounded-full text-xs ${tag.class} py-1 px-2 `}
+<article
+    class:list={[
+        "project-card group",
+        { "is-featured": featured },
+        { "lg:col-span-2 lg:grid lg:grid-cols-[1.05fr_.95fr]": featured },
+    ]}
+>
+    <div
+        class:list={[
+            "project-visual",
+            { "has-carousel": images?.length },
+            { "lg:order-2 lg:min-h-80": featured },
+        ]}
+    >
+        {images?.length ? (
+            <div
+                class="project-carousel"
+                data-carousel
+                tabindex="0"
+                aria-label={`${carouselLabels.label}: ${title}`}
+            >
+                <div class="project-carousel__viewport">
+                    {images.map((carouselImage, index) => (
+                        <figure
+                            class:list={[
+                                "project-carousel__slide",
+                                { "is-active": index === 0 },
+                            ]}
+                            data-carousel-slide
+                            aria-hidden={index === 0 ? "false" : "true"}
+                        >
+                            <button
+                                type="button"
+                                class="carousel-image-button"
+                                data-carousel-image
+                                data-image-src={carouselImage.src}
+                                data-image-alt={carouselImage.alt}
+                                aria-label={`${carouselLabels.expand}: ${carouselImage.alt}`}
+                                tabindex={index === 0 ? "0" : "-1"}
+                            >
+                                <img
+                                    src={carouselImage.src}
+                                    alt={carouselImage.alt}
+                                    loading="lazy"
+                                    decoding="async"
+                                />
+                                <span class="carousel-expand-hint" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5" />
+                                    </svg>
+                                </span>
+                            </button>
+                        </figure>
+                    ))}
+                </div>
+                <div class="project-carousel__controls">
+                    <button
+                        type="button"
+                        class="carousel-arrow"
+                        data-carousel-previous
+                        aria-label={carouselLabels.previous}
                     >
-                        <tag.icon class="size-4" />
-                        {tag.name}
-                    </span>
-                </li>
-            ))
-        }
-    </ul>
-</div>
-
-<div class="col-1 row-span-1 order-3 mt-1">
-    <p class="text-lg text-textsoft mb-2">
-        {description}
-    </p>
-</div>
-
-{
-    !link ? (
-        ""
-    ) : (
-        <div class="col-span-1 row-span-1 order-4 mt-6">
-            <LinkButton href={link}>
-                <img class="w-6" src="github.svg" />
-                Ver código
-            </LinkButton>
+                        <span aria-hidden="true">←</span>
+                    </button>
+                    <div class="carousel-dots">
+                        {images.map((_, index) => (
+                            <button
+                                type="button"
+                                class:list={[
+                                    "carousel-dot",
+                                    { "is-active": index === 0 },
+                                ]}
+                                data-carousel-dot={index}
+                                aria-label={`${carouselLabels.goTo} ${index + 1}`}
+                                aria-current={index === 0 ? "true" : undefined}
+                            />
+                        ))}
+                    </div>
+                    <button
+                        type="button"
+                        class="carousel-arrow"
+                        data-carousel-next
+                        aria-label={carouselLabels.next}
+                    >
+                        <span aria-hidden="true">→</span>
+                    </button>
+                    <button
+                        type="button"
+                        class="carousel-arrow carousel-toggle"
+                        data-carousel-toggle
+                        aria-label={carouselLabels.pause}
+                        data-play-label={carouselLabels.play}
+                        data-pause-label={carouselLabels.pause}
+                    >
+                        <span class="carousel-pause-icon" aria-hidden="true">Ⅱ</span>
+                        <span class="carousel-play-icon" aria-hidden="true">▶</span>
+                    </button>
+                </div>
+                <dialog
+                    class="carousel-lightbox"
+                    data-carousel-lightbox
+                    aria-label={`${carouselLabels.label}: ${title}`}
+                >
+                    <div class="carousel-lightbox__inner">
+                        <button
+                            type="button"
+                            class="carousel-lightbox__close"
+                            data-lightbox-close
+                            aria-label={carouselLabels.close}
+                        >
+                            <span aria-hidden="true">×</span>
+                        </button>
+                        <img
+                            data-lightbox-image
+                            src={images[0].src}
+                            alt={images[0].alt}
+                        />
+                    </div>
+                </dialog>
+            </div>
+        ) : image ? (
+            <Image
+                width={600}
+                height={600}
+                src={image}
+                alt=""
+                class="max-h-36 max-w-[70%] object-contain grayscale transition duration-500 group-hover:scale-[1.03] group-hover:grayscale-0"
+                loading="lazy"
+            />
+        ) : (
+            <span
+                class="text-6xl font-black tracking-[-0.08em] text-df-text/15"
+                aria-hidden="true"
+            >
+                {monogram ?? title.slice(0, 3).toUpperCase()}
+            </span>
+        )}
+    </div>
+    <div class="flex flex-col p-6 sm:p-8">
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-accent">
+            {kicker}
+        </p><h3
+            class="mt-4 text-2xl font-extrabold tracking-tight text-df-text sm:text-3xl"
+        >
+            {title}
+        </h3><p class="mt-4 flex-1 text-base leading-7 text-textsoft">
+            {description}
+        </p>{
+            points && (
+                <ul class="mt-5 space-y-2 border-l border-border pl-4 text-sm leading-6 text-textsoft">
+                    {points.map((point) => (
+                        <li>{point}</li>
+                    ))}
+                </ul>
+            )
+        }<ul class="mt-6 flex flex-wrap gap-2" aria-label="Tecnologías">
+            {tags.map((tag) => <li class="tag">{tag}</li>)}
+        </ul><div class="mt-7 flex flex-wrap gap-4 text-sm font-bold">
+            <a
+                class="fine-link text-df-text"
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer">{codeLabel} ↗</a
+            >{
+                liveLink && (
+                    <a class="fine-link text-accent" href={liveLink}>
+                        {liveLabel} →
+                    </a>
+                )
+            }
         </div>
-    )
-}
+    </div>
+</article>
 
-<div class="col-span-1 row-span-3 order-2">
-    <img
-        src={img}
-        class="transition duration-500 sm:h-full md:scale-95 hover:scale-110 transform-gpu"
-        loading="lazy"
-    />
-</div>
+<script>
+    document.querySelectorAll<HTMLElement>("[data-carousel]").forEach((carousel) => {
+        if (carousel.dataset.ready === "true") return;
+        carousel.dataset.ready = "true";
+
+        const slides = Array.from(
+            carousel.querySelectorAll<HTMLElement>("[data-carousel-slide]"),
+        );
+        const dots = Array.from(
+            carousel.querySelectorAll<HTMLButtonElement>("[data-carousel-dot]"),
+        );
+        const toggle = carousel.querySelector<HTMLButtonElement>(
+            "[data-carousel-toggle]",
+        );
+        const imageButtons = Array.from(
+            carousel.querySelectorAll<HTMLButtonElement>("[data-carousel-image]"),
+        );
+        const lightbox = carousel.querySelector<HTMLDialogElement>(
+            "[data-carousel-lightbox]",
+        );
+        const lightboxImage = lightbox?.querySelector<HTMLImageElement>(
+            "[data-lightbox-image]",
+        );
+        const reducedMotion = window.matchMedia(
+            "(prefers-reduced-motion: reduce)",
+        ).matches;
+        let activeIndex = 0;
+        let pointerStart = 0;
+        let autoplayTimer: number | undefined;
+        let userPaused = reducedMotion;
+        let isVisible = false;
+        let isHovered = false;
+        let hasFocus = false;
+
+        const showSlide = (index: number, direction?: "next" | "previous") => {
+            const nextIndex = (index + slides.length) % slides.length;
+            if (nextIndex === activeIndex) return;
+
+            const previousSlide = slides[activeIndex];
+            const nextSlide = slides[nextIndex];
+            const movement = direction ?? (nextIndex > activeIndex ? "next" : "previous");
+            const prepareClass = `is-entering-${movement}`;
+            const exitClass = `is-leaving-${movement}`;
+
+            nextSlide.classList.add(prepareClass);
+            nextSlide.getBoundingClientRect();
+            previousSlide.classList.remove("is-active");
+            previousSlide.classList.add(exitClass);
+            nextSlide.classList.remove(prepareClass);
+            nextSlide.classList.add("is-active");
+            previousSlide.setAttribute("aria-hidden", "true");
+            nextSlide.setAttribute("aria-hidden", "false");
+            window.setTimeout(() => previousSlide.classList.remove(exitClass), 520);
+
+            activeIndex = nextIndex;
+            dots.forEach((dot, dotIndex) => {
+                const active = dotIndex === activeIndex;
+                dot.classList.toggle("is-active", active);
+                active
+                    ? dot.setAttribute("aria-current", "true")
+                    : dot.removeAttribute("aria-current");
+            });
+            imageButtons.forEach((button, imageIndex) => {
+                button.tabIndex = imageIndex === activeIndex ? 0 : -1;
+            });
+        };
+
+        const stopAutoplay = () => {
+            if (autoplayTimer) window.clearInterval(autoplayTimer);
+            autoplayTimer = undefined;
+        };
+        const startAutoplay = () => {
+            stopAutoplay();
+            if (userPaused || reducedMotion || !isVisible || isHovered || hasFocus)
+                return;
+            autoplayTimer = window.setInterval(
+                () => showSlide(activeIndex + 1, "next"),
+                3600,
+            );
+        };
+        const restartAutoplay = () => {
+            stopAutoplay();
+            startAutoplay();
+        };
+        const updateToggle = () => {
+            carousel.classList.toggle("is-paused", userPaused);
+            if (!toggle) return;
+            toggle.setAttribute("aria-pressed", String(userPaused));
+            toggle.setAttribute(
+                "aria-label",
+                userPaused
+                    ? toggle.dataset.playLabel ?? "Play"
+                    : toggle.dataset.pauseLabel ?? "Pause",
+            );
+        };
+
+        carousel
+            .querySelector("[data-carousel-previous]")
+            ?.addEventListener("click", () => {
+                showSlide(activeIndex - 1, "previous");
+                restartAutoplay();
+            });
+        carousel
+            .querySelector("[data-carousel-next]")
+            ?.addEventListener("click", () => {
+                showSlide(activeIndex + 1, "next");
+                restartAutoplay();
+            });
+        dots.forEach((dot) =>
+            dot.addEventListener("click", () => {
+                const target = Number(dot.dataset.carouselDot);
+                showSlide(target, target > activeIndex ? "next" : "previous");
+                restartAutoplay();
+            }),
+        );
+        toggle?.addEventListener("click", () => {
+            userPaused = !userPaused;
+            updateToggle();
+            userPaused ? stopAutoplay() : startAutoplay();
+        });
+        const closeLightbox = () => {
+            if (!lightbox?.open || lightbox.classList.contains("is-closing")) return;
+            lightbox.classList.add("is-closing");
+            window.setTimeout(() => {
+                lightbox.close();
+                lightbox.classList.remove("is-closing");
+            }, reducedMotion ? 0 : 240);
+        };
+        imageButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                if (!lightbox || !lightboxImage) return;
+                lightboxImage.src = button.dataset.imageSrc ?? "";
+                lightboxImage.alt = button.dataset.imageAlt ?? "";
+                lightbox.showModal();
+            });
+        });
+        lightbox
+            ?.querySelector("[data-lightbox-close]")
+            ?.addEventListener("click", closeLightbox);
+        lightbox?.addEventListener("click", (event) => {
+            if (event.target === lightbox) closeLightbox();
+        });
+        lightbox?.addEventListener("cancel", (event) => {
+            event.preventDefault();
+            closeLightbox();
+        });
+        carousel.addEventListener("keydown", (event) => {
+            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+            event.preventDefault();
+            const direction = event.key === "ArrowRight" ? "next" : "previous";
+            showSlide(activeIndex + (direction === "next" ? 1 : -1), direction);
+            restartAutoplay();
+        });
+        carousel.addEventListener("pointerdown", (event) => {
+            pointerStart = event.clientX;
+            stopAutoplay();
+        });
+        carousel.addEventListener("pointerup", (event) => {
+            const distance = event.clientX - pointerStart;
+            if (Math.abs(distance) >= 45) {
+                const direction = distance < 0 ? "next" : "previous";
+                showSlide(activeIndex + (direction === "next" ? 1 : -1), direction);
+            }
+            startAutoplay();
+        });
+        carousel.addEventListener("mouseenter", () => {
+            isHovered = true;
+            stopAutoplay();
+        });
+        carousel.addEventListener("mouseleave", () => {
+            isHovered = false;
+            startAutoplay();
+        });
+        carousel.addEventListener("focusin", () => {
+            hasFocus = true;
+            stopAutoplay();
+        });
+        carousel.addEventListener("focusout", () => {
+            window.setTimeout(() => {
+                hasFocus = carousel.contains(document.activeElement);
+                startAutoplay();
+            });
+        });
+
+        const visibilityObserver = new IntersectionObserver(
+            ([entry]) => {
+                isVisible = entry.isIntersecting;
+                isVisible ? startAutoplay() : stopAutoplay();
+            },
+            { threshold: 0.35 },
+        );
+        visibilityObserver.observe(carousel);
+        document.addEventListener("visibilitychange", () =>
+            document.hidden ? stopAutoplay() : startAutoplay(),
+        );
+        updateToggle();
+    });
+</script>
