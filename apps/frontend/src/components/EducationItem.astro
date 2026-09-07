@@ -1,33 +1,29 @@
 ---
-interface Props {
-    title: string;
-    place: string;
-    date: string;
-    description?: string;
-    link: string;
-}
-
-const { title, place, description, date, link } = Astro.props;
+const { title, place, description, date, link, current, currentLabel } =
+    Astro.props;
 ---
 
-<div
-    class="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5 border border-secondary bg-softblue"
->
-</div>
-<time class="mb-1 text-sm font-normal leading-none text-textsoft opacity-70">
-    {date}
-</time>
-<p class="text-2xl font-semibold text-df-text mt-2">
-    {title}
-</p>
-<a
-    class="text-lg font-semibold text-df-text hover:text-softblue underline mt-2"
-    href={link}
-    target="_blank"
->
-    {place}
-    <a></a>
-    <p class="text-lg font-light text-df-text text-pretty">
-        {description}
-    </p>
-</a>
+<article class="soft-card flex min-h-64 flex-col p-6 sm:p-7">
+    <div class="flex items-start justify-between gap-3">
+        <time
+            class="text-xs font-bold uppercase tracking-[0.14em] text-textsoft"
+            >{date}</time
+        >{
+            current && (
+                <span class="rounded-full bg-accent-soft px-2.5 py-1 text-[0.68rem] font-bold text-accent">
+                    {currentLabel}
+                </span>
+            )
+        }
+    </div>
+    <h3
+        class="mt-8 text-xl font-extrabold leading-tight tracking-tight text-df-text"
+    >
+        {title}
+    </h3><a
+        class="fine-link mt-2 w-fit font-semibold text-textsoft hover:text-df-text"
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer">{place} <span aria-hidden="true">↗</span></a
+    ><p class="mt-4 text-sm leading-6 text-textsoft">{description}</p>
+</article>
