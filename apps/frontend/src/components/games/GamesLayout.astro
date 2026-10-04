@@ -1,0 +1,48 @@
+---
+import Header from "../Header.astro";
+import Footer from "../Footer.astro";
+import { portfolio } from "../../data/portfolio";
+import "../../styles/global.css";
+import "../../styles/games.css";
+
+interface Props { title: string; }
+const { title } = Astro.props;
+const content = {
+    ...portfolio.es,
+    navigation: [
+        { href: "/", label: "Portfolio" },
+        { href: "/games", label: "Juegos" },
+        { href: "/admin", label: "Administración" },
+    ],
+};
+---
+
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <title>{title}</title>
+        <script is:inline>
+            (() => {
+                let stored;
+                try { stored = localStorage.getItem("theme"); } catch {}
+                const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+                document.documentElement.dataset.theme = dark ? "dark" : "light";
+            })();
+        </script>
+    </head>
+    <body class="games-app bg-bodyback text-df-text antialiased">
+        <a class="skip-link" href="#game-content">Saltar al contenido</a>
+        <Header content={content} showLanguage={false} />
+        <slot />
+        <Footer content={content} />
+        <script>
+            document.querySelector("#theme-toggle")?.addEventListener("click", () => {
+                const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+                document.documentElement.dataset.theme = next;
+                try { localStorage.setItem("theme", next); } catch {}
+            });
+        </script>
+    </body>
+</html>

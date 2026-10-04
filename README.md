@@ -12,7 +12,7 @@ Current environments:
 - `rubennmg.cloud`: staging frontend on the VPS.
 - `api.rubennmg.cloud`: staging FastAPI backend on the VPS.
 
-Business features such as admin login, CRUD and rankings are intentionally deferred until the infrastructure base is stable.
+Admin login, player and match management, and public Catán and Flip Seven rankings are implemented. See `docs/board-games-rankings.md` for the current rules and verification workflow.
 
 ## Repository Structure
 
