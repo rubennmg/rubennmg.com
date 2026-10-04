@@ -33,3 +33,26 @@ def test_seed_database_creates_base_games_and_admin() -> None:
     assert admin.is_active is True
     assert admin.password_hash != "secret"
     assert verify_password("secret", admin.password_hash)
+
+
+def test_missing_only_seed_preserves_existing_records() -> None:
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    with sessionmaker(bind=engine)() as db:
+        seed_database(db, admin_username="admin", admin_password="secret", missing_only=True)
+        game = db.scalar(select(Game).where(Game.slug == "catan"))
+        admin = db.scalar(select(User).where(User.username == "admin"))
+        game.is_active = False
+        game.display_name = "Custom Catán"
+        admin.is_active = False
+        admin.role = "disabled"
+        db.commit()
+        seed_database(db, admin_username="admin", admin_password="replacement", missing_only=True)
+        db.refresh(game)
+        db.refresh(admin)
+        assert game.is_active is False
+        assert game.display_name == "Custom Catán"
+        assert admin.is_active is False
+        assert admin.role == "disabled"
+        assert verify_password("secret", admin.password_hash)
+        assert len(db.scalars(select(Game)).all()) == 2

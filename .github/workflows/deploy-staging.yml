@@ -2,15 +2,22 @@ name: Deploy Staging
 
 on:
     push:
-        branches:
-            - develop
+        branches: [develop]
+
+permissions:
+    contents: read
 
 concurrency:
     group: deploy-staging
     cancel-in-progress: false
 
 jobs:
+    verify:
+        name: Verify before deployment
+        uses: ./.github/workflows/ci.yml
+
     deploy:
+        needs: verify
         name: Deploy to VPS
         runs-on: ubuntu-latest
         environment: staging
@@ -32,14 +39,19 @@ jobs:
               env:
                   VPS_HOST: ${{ secrets.VPS_HOST }}
                   VPS_USER: ${{ secrets.VPS_USER }}
+                  DEPLOY_SHA: ${{ github.sha }}
               run: |
-                  ssh -i ~/.ssh/deploy_key "$VPS_USER@$VPS_HOST" <<'EOF'
-                    set -e
+                  ssh -i ~/.ssh/deploy_key "$VPS_USER@$VPS_HOST" bash -s -- "$DEPLOY_SHA" <<'EOF'
+                    set -euo pipefail
+                    deploy_sha="$1"
+                    [[ "$deploy_sha" =~ ^[0-9a-f]{40}$ ]]
                     cd /home/deploy/apps/rubennmg.com
                     git fetch origin
+                    if [ "$(git rev-parse origin/develop)" != "$deploy_sha" ]; then
+                      echo "Skipping superseded staging commit."
+                      exit 0
+                    fi
                     git checkout develop
-                    git reset --hard origin/develop
-                    cd infra/staging
-                    docker compose --env-file .env.staging -f compose.yml up -d --build
-                    docker image prune -f
+                    git reset --hard "$deploy_sha"
+                    bash infra/staging/deploy.sh
                   EOF

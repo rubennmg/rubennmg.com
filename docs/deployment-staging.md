@@ -62,11 +62,11 @@ cd /home/deploy/apps/rubennmg.com/infra/staging
 cp ../../.env.example .env.staging
 ```
 
-Then replace `POSTGRES_PASSWORD` with a real secret.
+Set real values for `POSTGRES_PASSWORD`, `ADMIN_PASSWORD` and `AUTH_SECRET_KEY`; do not keep `change-me`. Use `APP_ENV=staging`, `PUBLIC_API_URL=https://api.rubennmg.cloud` and include `https://rubennmg.cloud,https://www.rubennmg.cloud` in `CORS_ALLOWED_ORIGINS`. The API URL is embedded when building the frontend. Because the database password is embedded in a connection URL, use a URL-safe password (for example, random hexadecimal).
 
 ## GitHub Actions Deploy
 
-Staging deploy runs automatically on every push to `develop` through `.github/workflows/deploy-staging.yml`.
+Staging deploy runs on pushes to `develop` through `.github/workflows/deploy-staging.yml`, after its reusable CI job succeeds (frontend build, backend tests, backend Docker build and deployment configuration checks). PRs still run CI independently. Do not configure branch protection to require the old standalone push-to-develop CI run; select the checks from the current workflows if necessary.
 
 Create a GitHub environment named `staging` and add these secrets:
 
@@ -102,29 +102,41 @@ Store the private key contents in `VPS_SSH_KEY`:
 cat ~/.ssh/rubennmg_staging_deploy
 ```
 
-The workflow connects by SSH and runs:
+The workflow connects by SSH, fetches the repository and deploys the exact commit that passed CI. If `origin/develop` has advanced, the obsolete deployment is skipped. The checkout at `/home/deploy/apps/rubennmg.com` is a dedicated deployment checkout: tracked files are reset to that commit.
+
+It then invokes:
 
 ```bash
 cd /home/deploy/apps/rubennmg.com
-git fetch origin
-git checkout develop
-git pull origin develop
-cd infra/staging
-docker compose --env-file .env.staging -f compose.yml up -d --build
-docker image prune -f
+bash infra/staging/deploy.sh
 ```
 
 The file `infra/staging/.env.staging` must already exist on the VPS before the first automatic deployment.
 
 ## Start Staging
 
-From `infra/staging`:
+From the repository root on the VPS, after checking out the intended version:
 
 ```bash
-docker compose --env-file .env.staging -f compose.yml up -d --build
+bash infra/staging/deploy.sh
 ```
 
+The same script supports initial setup and later updates:
+
+1. Validate the environment and build both images before touching running services.
+2. Start PostgreSQL and wait for its health check.
+3. Run `alembic upgrade head` using the new backend image.
+4. Run `python -m app.scripts.seed --missing-only` to create missing games and the initial admin. Existing passwords, roles, activation flags and game settings are preserved.
+5. Start the stack and wait for backend/frontend health checks.
+6. Read the active games and their rankings through the API, then check the public frontend and database-health URL over HTTPS.
+
+Requires Docker Compose with `up --wait` / `--wait-timeout`, Bash, and curl with `--retry-all-errors` on the VPS. DNS and ports 80/443 must be ready for the public checks.
+
+Build, database readiness, migration or seed failures stop the script before replacing application containers. Later health-check failures mark deployment as failed; there is no automatic rollback. Inspect logs and fix or redeploy a compatible version. Never run `down -v` as part of deployment. Back up staging data before future destructive migrations; the Catán migration only adds a table. Running migrations against the live database assumes they are compatible with the previous application version.
+
 ## Check Services
+
+From `infra/staging`:
 
 ```bash
 docker compose --env-file .env.staging -f compose.yml ps
@@ -136,7 +148,9 @@ Expected public checks once DNS points to the VPS:
 
 ```txt
 https://rubennmg.cloud
+https://rubennmg.cloud/games/
 https://api.rubennmg.cloud/health
+https://api.rubennmg.cloud/api/health/db
 ```
 
 PostgreSQL is only attached to the internal Docker network and does not expose port `5432` externally.

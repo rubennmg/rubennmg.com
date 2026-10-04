@@ -1,16 +1,27 @@
 name: CI
 
 on:
+  workflow_call:
   push:
     branches:
       - main
-      - develop
   pull_request:
     branches:
       - main
       - develop
 
 jobs:
+  staging-config:
+    name: Staging deployment checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate deployment script and Compose
+        run: |
+          bash -n infra/staging/deploy.sh
+          docker compose --env-file .env.example -f infra/staging/compose.yml config --quiet
+          python3 infra/staging/test_deploy.py
+
   frontend:
     name: Frontend
     runs-on: ubuntu-latest
