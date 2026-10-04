@@ -66,9 +66,8 @@ curl http://localhost:8000/api/games/catan/rankings
 
 Open the public pages:
 
-- `http://localhost:4321/games/catan`
+- `http://localhost:4321/games`
 - `http://localhost:4321/games/catan/rankings`
-- `http://localhost:4321/games/flipseven`
 - `http://localhost:4321/games/flipseven/rankings`
 
 Stop the local database:

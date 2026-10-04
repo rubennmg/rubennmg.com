@@ -4,11 +4,23 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class CatanResultDetails(BaseModel):
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
+
+    cities: int | None = Field(default=None, ge=0, strict=True)
+    settlements: int | None = Field(default=None, ge=0, strict=True)
+    roads: int | None = Field(default=None, ge=0, strict=True)
+    longest_road: bool | None = Field(default=None, strict=True)
+    largest_army: bool | None = Field(default=None, strict=True)
+    victory_point_cards: int | None = Field(default=None, ge=0, strict=True)
+
+
 class MatchResultInput(BaseModel):
     player_id: uuid.UUID
     score: int = Field(ge=0)
     position: int | None = Field(default=None, ge=1)
     is_winner: bool = False
+    catan: CatanResultDetails | None = None
 
 
 class MatchCreate(BaseModel):
@@ -48,6 +60,7 @@ class MatchResultRead(BaseModel):
     score: int
     position: int | None
     is_winner: bool
+    catan: CatanResultDetails | None = None
 
 
 class MatchRead(BaseModel):

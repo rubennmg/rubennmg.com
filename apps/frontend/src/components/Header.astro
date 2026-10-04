@@ -1,5 +1,5 @@
 ---
-const { content } = Astro.props;
+const { content, showLanguage = true } = Astro.props;
 const languageHref = content.locale === "es" ? "/en/" : "/";
 ---
 
@@ -43,13 +43,13 @@ const languageHref = content.locale === "es" ? "/en/" : "/";
                 }
             </nav>
             <span class="mx-1 hidden h-5 w-px bg-border sm:block"></span>
-            <a
+            {showLanguage && <a
                 href={languageHref}
                 hreflang={content.locale === "es" ? "en" : "es"}
                 class="utility-button"
                 title={content.labels.language}
                 >{content.labels.languageShort}</a
-            >
+            >}
             <button
                 id="theme-toggle"
                 class="utility-button"

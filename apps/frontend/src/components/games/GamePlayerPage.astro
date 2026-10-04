@@ -1,0 +1,122 @@
+---
+import GamesLayout from "./GamesLayout.astro";
+interface Props { gameName: string; gameSlug: string; }
+const { gameName, gameSlug } = Astro.props;
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+---
+
+<GamesLayout title={`Ficha de jugador · ${gameName}`}>
+    <main id="game-content" class="games-main shell">
+        <nav class="mb-10 text-sm text-textsoft" aria-label="Volver al ranking">
+            <a href={`/games/${gameSlug}/rankings`} class="fine-link">← Ranking de {gameName}</a>
+        </nav>
+        <header class="section-heading pt-7">
+            <p class="eyebrow">Ficha de jugador · {gameName}</p>
+            <h1 id="player-name" class="mt-4 text-4xl sm:text-6xl">Estadísticas del jugador</h1>
+            <p class="mt-5 max-w-3xl text-textsoft leading-7">
+                Resultados y estadísticas de {gameName}.
+                {gameSlug === "catan" && " Las construcciones y distinciones reflejan el final de cada partida. Las medias y porcentajes usan solo las partidas con ese dato registrado."}
+            </p>
+        </header>
+        <p id="player-loading" role="status" class="mt-8 text-textsoft">Cargando ficha...</p>
+        <p id="player-error" role="alert" class="hidden mt-8 rounded-2xl border border-border bg-background p-6 text-textsoft"></p>
+        <div id="player-content" class="mt-8"></div>
+    </main>
+    <script is:inline define:vars={{ apiUrl, gameSlug, gameName }}>
+        (() => {
+            const formatNumber = (value) => new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2 }).format(value);
+            const node = (tag, className, text) => {
+                const element = document.createElement(tag);
+                element.className = className;
+                if (text !== undefined) element.textContent = text;
+                return element;
+            };
+
+            const playerCard = (row) => {
+                const body = node("div", "soft-card p-5 sm:p-8");
+                const overview = node("dl", "grid grid-cols-2 gap-4 sm:grid-cols-3");
+                for (const [label, value] of [
+                    ["Partidas", row.matches_played], ["Posición en el ranking", row.position], ["Puntos totales", row.total_points], ["Media de puntos", formatNumber(row.average_points)],
+                    ["Victorias", row.wins], ["Porcentaje de victorias", `${formatNumber(row.win_rate)}%`],
+                ]) {
+                    const metric = node("div", "");
+                    metric.append(node("dt", "text-sm text-textsoft", label), node("dd", "mt-1 text-2xl font-bold text-df-text", value));
+                    overview.append(metric);
+                }
+                body.append(overview);
+                if (!row.matches_played) {
+                    body.append(node("p", "mt-5 text-sm text-textsoft", "Este jugador todavía no ha disputado partidas de este juego."));
+                }
+                if (row.catan) {
+                    body.append(
+                        node("h2", "mt-8 text-xl font-bold text-df-text", "Catán en detalle"),
+                        node("p", "mt-2 text-sm text-textsoft", `${row.catan.matches_with_details} de ${row.matches_played} partidas con ficha de Catán. Cada estadística indica su propia muestra.`),
+                    );
+                    const grid = node("div", "mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4");
+                    for (const [key, label] of [
+                        ["cities", "Ciudades"], ["settlements", "Pueblos"],
+                        ["roads", "Carreteras"], ["victory_point_cards", "Puntos de victoria en cartas"],
+                    ]) {
+                        const stat = row.catan[key];
+                        const card = node("article", "rounded-2xl border border-border bg-bodyback p-4");
+                        card.append(node("h3", "text-sm font-bold text-df-text", label));
+                        if (stat.recorded_matches) {
+                            card.append(
+                                node("p", "mt-3 text-2xl font-extrabold text-accent", `${formatNumber(stat.average)} de media`),
+                                node("p", "mt-2 text-sm text-textsoft", `Total: ${stat.total} · Máximo: ${stat.best}`),
+                            );
+                        } else card.append(node("p", "mt-3 text-sm text-textsoft", "Sin datos registrados"));
+                        card.append(node("p", "mt-2 text-xs text-textsoft", `${stat.recorded_matches} partidas con este dato`));
+                        grid.append(card);
+                    }
+                    body.append(grid);
+                    const awards = node("div", "mt-3 grid gap-3 sm:grid-cols-2");
+                    for (const [key, label] of [["longest_road", "Carretera más larga"], ["largest_army", "Mayor ejército"]]) {
+                        const stat = row.catan[key];
+                        const card = node("article", "rounded-2xl border border-border bg-accent-soft/40 p-4");
+                        card.append(
+                            node("h3", "font-bold text-df-text", label),
+                            node("p", "mt-2 text-xl font-extrabold text-accent", stat.recorded_matches ? `${stat.times_held} veces · ${formatNumber(stat.rate)}%` : "Sin datos registrados"),
+                            node("p", "mt-2 text-xs text-textsoft", `Al final de la partida · ${stat.recorded_matches} partidas con este dato`),
+                        );
+                        awards.append(card);
+                    }
+                    body.append(awards);
+                }
+                return body;
+            };
+
+
+            async function loadPlayer() {
+                const loading = document.getElementById("player-loading");
+                const error = document.getElementById("player-error");
+                try {
+                    const playerId = new URLSearchParams(window.location.search).get("id")?.toLowerCase();
+                    if (!playerId) {
+                        error.textContent = "Selecciona un jugador desde el ranking para consultar su ficha.";
+                        error.classList.remove("hidden");
+                        return;
+                    }
+                    const response = await fetch(`${apiUrl}/api/games/${gameSlug}/rankings`, { headers: { Accept: "application/json" } });
+                    if (!response.ok) throw new Error("Player request failed");
+                    const data = await response.json();
+                    const player = data.ranking.find((row) => row.player_id === playerId);
+                    if (!player) {
+                        error.textContent = "Este jugador no está disponible en el ranking de este juego.";
+                        error.classList.remove("hidden");
+                        return;
+                    }
+                    document.getElementById("player-name").textContent = player.player_name;
+                    document.title = `${player.player_name} · ${gameName} | rubennmg`;
+                    document.getElementById("player-content").replaceChildren(playerCard(player));
+                } catch {
+                    error.textContent = "No se pudo cargar la ficha. Recarga la página para volver a intentarlo.";
+                    error.classList.remove("hidden");
+                } finally {
+                    loading.classList.add("hidden");
+                }
+            }
+            loadPlayer();
+        })();
+    </script>
+</GamesLayout>
