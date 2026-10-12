@@ -2,7 +2,7 @@ FROM node:25-alpine AS build
 
 WORKDIR /app
 
-ARG PUBLIC_API_URL=https://api.rubennmg.cloud
+ARG PUBLIC_API_URL=
 ENV PUBLIC_API_URL=${PUBLIC_API_URL}
 
 COPY package*.json ./

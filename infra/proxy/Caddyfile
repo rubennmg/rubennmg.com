@@ -1,0 +1,24 @@
+rubennmg.com, www.rubennmg.com {
+	@api path /api /api/* /health
+	handle @api {
+		reverse_proxy production-backend:8000
+	}
+	handle {
+		reverse_proxy production-frontend:80
+	}
+}
+
+rubennmg.cloud, www.rubennmg.cloud {
+	@api path /api /api/* /health
+	handle @api {
+		reverse_proxy staging-backend:8000
+	}
+	handle {
+		reverse_proxy staging-frontend:80
+	}
+}
+
+# Compatibility for existing staging clients/bookmarks.
+api.rubennmg.cloud {
+	reverse_proxy staging-backend:8000
+}

@@ -4,7 +4,7 @@ This repository uses a reduced Gitflow.
 
 ## Branches
 
-- `main`: current production branch for `rubennmg.com` on Premium Web Hosting.
+- `main`: current production branch for `rubennmg.com` on the VPS.
 - `develop`: staging branch for `rubennmg.cloud` on the VPS.
 - `feature/*`: normal implementation work.
 - `hotfix/*`: urgent production fixes based on `main`.
