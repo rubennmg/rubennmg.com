@@ -8,11 +8,11 @@ The project is now organized as a monorepo prepared for a gradual full-stack mig
 
 Current environments:
 
-- `rubennmg.com`: production static Astro frontend on Hostinger Premium Web Hosting.
-- `rubennmg.cloud`: staging frontend on the VPS.
-- `api.rubennmg.cloud`: staging FastAPI backend on the VPS.
+- `rubennmg.com`: production frontend, FastAPI and PostgreSQL on the VPS.
+- `rubennmg.cloud`: independent staging frontend, FastAPI and PostgreSQL on the same VPS.
+- `api.rubennmg.cloud`: legacy staging API hostname; both frontends now use same-origin `/api`.
 
-Business features such as admin login, CRUD and rankings are intentionally deferred until the infrastructure base is stable.
+Admin login, player and match management, and public Catán and Flip Seven rankings are implemented. See `docs/board-games-rankings.md` for the current rules and verification workflow.
 
 ## Repository Structure
 
@@ -21,7 +21,9 @@ apps/
   frontend/   Astro static frontend served by nginx in Docker
   backend/    FastAPI backend prepared for PostgreSQL
 infra/
-  staging/    Docker Compose stack and Caddy config
+  staging/    Staging Compose stack
+  production/ Production Compose stack
+  proxy/      Shared Caddy template
 docs/         Architecture, deployment and operations docs
 .github/      CI, CD and Dependabot configuration
 ```
@@ -82,34 +84,25 @@ Build the backend Docker image:
 docker build -t rubennmg-backend ./apps/backend
 ```
 
-## Staging Stack
+## VPS Stacks
 
-Create a local staging env file from the template:
+Follow [the VPS deployment guide](docs/deployment-vps.md) to provision or migrate staging and production. It includes environment files, secrets, DNS, persistent volume preservation and the shared Caddy setup.
 
-```bash
-cd infra/staging
-cp ../../.env.example .env.staging
-```
-
-Start the stack:
+After provisioning, run the corresponding script from its dedicated checkout:
 
 ```bash
-docker compose --env-file .env.staging -f compose.yml up -d --build
+bash infra/staging/deploy.sh
+# In the production checkout:
+bash infra/production/deploy.sh
 ```
 
-Stop it:
-
-```bash
-docker compose --env-file .env.staging -f compose.yml down
-```
-
-PostgreSQL is private to Docker and is not exposed on the host.
+Only Caddy publishes public application ports. Each database has its own persistent external volume and private network.
 
 ## CI/CD
 
-- CI runs on pushes and PRs to `develop` and `main`.
+- CI runs on PRs to `develop`/`main`, on pushes to `main`, and before both deployments.
 - Staging deploy runs on pushes to `develop`.
-- Production Premium deploy runs on pushes to `main`.
+- Production VPS deploy runs on pushes to `main`.
 - Merged same-repo `feature/*` branches targeting `develop` are deleted automatically.
 - Dependabot opens dependency PRs against `develop`.
 
@@ -120,6 +113,7 @@ PostgreSQL is private to Docker and is not exposed on the host.
 - `docs/git-workflow.md`
 - `docs/local-development.md`
 - `docs/deployment-staging.md`
-- `docs/deployment-production-premium.md`
+- `docs/deployment-production.md`
+- `docs/deployment-vps.md`
 - `docs/environment-variables.md`
 - `docs/operations.md`

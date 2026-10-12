@@ -1,90 +1,20 @@
 # Architecture
 
-`rubennmg.com` is transitioning from a static Astro portfolio to a full-stack monorepo.
+Both environments run on one provider-independent Linux VPS:
 
-## Current Transition State
-
-```txt
-rubennmg.com
-└── Hostinger Premium Web Hosting
-    └── Production
-        └── Static Astro frontend
-
-rubennmg.cloud
-└── VPS
-    └── Staging
-        ├── Caddy reverse proxy
-        ├── Astro frontend container
-        ├── FastAPI backend container
-        └── PostgreSQL private Docker service
+```text
+Internet → shared Caddy (80/443, automatic TLS)
+  rubennmg.com       → production frontend / backend → production PostgreSQL
+  rubennmg.cloud     → staging frontend / backend    → staging PostgreSQL
 ```
 
-## Domains
+Astro builds static files served by Nginx. `/api` and `/health` go to the matching FastAPI backend without rewriting the path. Each backend sees only its own PostgreSQL through its private Docker network. The proxy connects to two separate environment web networks. No app service publishes host ports.
 
-- `rubennmg.com`: current production frontend on Premium Web Hosting.
-- `www.rubennmg.com`: current production frontend on Premium Web Hosting.
-- `rubennmg.cloud`: staging frontend on the VPS.
-- `www.rubennmg.cloud`: staging frontend on the VPS.
-- `api.rubennmg.cloud`: staging backend on the VPS.
+Each branch has a separate checkout and Compose project. PostgreSQL data lives in distinct external volumes. Secrets remain in per-environment ignored files. A third project runs Caddy with persistent certificate storage and live configuration outside both Git checkouts. Application CI/CD does not restart or reconfigure it.
 
-## Repository Layout
+- `develop` → CI → SSH → `staging` → `rubennmg.cloud`.
+- `main` → CI → SSH → `rubennmg-production` → `rubennmg.com` → GitHub release.
 
-```txt
-apps/
-  frontend/   Astro static frontend
-  backend/    FastAPI backend
-infra/
-  staging/    Docker Compose and Caddy config
-docs/         Project documentation
-```
+The legacy `api.rubennmg.cloud` route remains available, but new frontends use same-origin API URLs. Production has no dependency on FTP or Premium Hosting.
 
-## Runtime Flow
-
-```mermaid
-flowchart TD
-    Developer[Developer] --> GitHub[GitHub]
-    GitHub --> Main[main]
-    GitHub --> Develop[develop]
-
-    Main --> PremiumDeploy[Production deploy]
-    PremiumDeploy --> Premium[Premium Web Hosting]
-    Premium --> Com[rubennmg.com]
-
-    Develop --> StagingDeploy[Staging deploy]
-    StagingDeploy --> VPS[VPS]
-    VPS --> Caddy[Caddy]
-    Caddy --> Frontend[Astro frontend]
-    Caddy --> Backend[FastAPI backend]
-    Backend --> Postgres[(PostgreSQL)]
-```
-
-## Infrastructure Base
-
-- Monorepo layout.
-- Static Astro frontend under `apps/frontend`.
-- Minimal FastAPI backend under `apps/backend`.
-- Health endpoints.
-- PostgreSQL prepared in Docker Compose for staging.
-- Caddy reverse proxy for staging.
-- GitHub Actions CI and CD workflows.
-- Dependabot.
-- Documentation.
-
-## Board Games Rankings Functional v1
-
-- Public game pages and rankings under `/games`.
-- Admin login with HttpOnly cookies.
-- CSRF protection for admin mutations.
-- Players management under `/admin/players`.
-- Matches management under `/admin/matches`.
-- Rankings calculated from individual matches.
-- PostgreSQL data model with Alembic migrations.
-
-See `docs/board-games-rankings.md` for functional routes, API endpoints and validation rules.
-
-## Not Included Yet
-
-- Public links from the portfolio to `/games`.
-- Admin game creation; games are seeded in v1.
-- Production backend on the VPS.
-- CodeQL.
+See [deployment-vps.md](deployment-vps.md) for resource names, migration and provisioning, and [board-games-rankings.md](board-games-rankings.md) for application features.

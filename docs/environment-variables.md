@@ -1,49 +1,26 @@
 # Environment Variables
 
-## Public Variables
+Real VPS settings are stored only in each checkout's ignored `.env` file, mode 600:
 
-- `PUBLIC_API_URL`: frontend-visible API URL. Staging uses `https://api.rubennmg.cloud`.
+- `infra/staging/.env.staging`, from `.env.staging.example` in the same directory.
+- `infra/production/.env.production`, from `.env.production.example` in the same directory.
 
-## Backend Variables
+`.env.example` at the repository root remains a staging-oriented reference. Use the environment-specific templates for deployments. Real env files are excluded from Docker build contexts.
 
-- `APP_ENV`: runtime environment name, for example `staging`.
-- `CORS_ALLOWED_ORIGINS`: comma-separated list of allowed frontend origins.
-- `DATABASE_URL`: SQLAlchemy database URL. In staging it is composed inside Docker Compose from `POSTGRES_PASSWORD`.
-- `ADMIN_USERNAME`: initial admin username used by the seed script.
-- `ADMIN_PASSWORD`: initial admin password used by the seed script.
-- `ENABLE_DEMO_DATA`: enables optional demo data in staging when set to `true`.
-- `AUTH_SECRET_KEY`: secret key used to sign session and CSRF tokens.
-- `AUTH_COOKIE_NAME`: HttpOnly session cookie name.
-- `AUTH_SESSION_DAYS`: session duration in days.
+| Variable | Meaning |
+| --- | --- |
+| `PUBLIC_API_URL` | Public build-time frontend API **origin**, empty for same-origin `/api/...`. Never put a secret here or use `/api` as the value. Local development may use `http://localhost:8000`. |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated HTTPS root/www origins for this environment only. |
+| `ADMIN_USERNAME` | Initial seeded admin username. |
+| `ADMIN_PASSWORD` | Independent secret per environment; only used when creating a missing admin. |
+| `ENABLE_DEMO_DATA` | Keep `false` in normal deployment. |
+| `AUTH_SECRET_KEY` | Independent random secret for signing sessions/CSRF tokens. |
+| `AUTH_COOKIE_NAME` | `rubennmg_staging_session` or `rubennmg_production_session`. |
+| `AUTH_SESSION_DAYS` | Session lifetime, default 7 days. |
+| `POSTGRES_PASSWORD` | Independent URL-safe DB password; generate with `openssl rand -hex 32`. Preserve the existing staging password. |
 
-## Database Variables
+VPS Compose fixes `APP_ENV` to `staging`/`production`, and constructs `DATABASE_URL` with the corresponding database (`rubennmg_staging`/`rubennmg_production`), user `rubennmg`, and private `db:5432` host. They need not be supplied manually. PostgreSQL initialization settings do not change credentials on an existing volume. The seed does not rotate an existing admin password.
 
-- `POSTGRES_PASSWORD`: PostgreSQL password. This is sensitive and must not be committed with a real value.
+GitHub Environments **staging** and **production** each require `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`. Environment scoping separates values; no `STAGING_`/`PRODUCTION_` prefix is needed. Application/DB secrets are not passed through GitHub Actions. FTP secrets are obsolete and can be removed.
 
-## Files
-
-- `.env.example`: committed template with safe placeholder values.
-- `infra/staging/.env.staging`: real staging values on the VPS, ignored by Git.
-
-Never commit real `.env`, `.env.production` or `.env.staging` files.
-
-## Staging GitHub Actions Secrets
-
-The `staging` environment requires:
-
-- `VPS_HOST`: VPS hostname or IP address.
-- `VPS_USER`: SSH user, expected to be `deploy`.
-- `VPS_SSH_KEY`: private SSH key used by GitHub Actions to connect to the VPS.
-
-Do not reuse a personal SSH key. Create a dedicated key for staging deployments.
-
-## Production GitHub Actions Secrets
-
-The `production` environment requires:
-
-- `PREMIUM_FTP_HOST`: FTP/SFTP hostname from Hostinger Premium Web Hosting.
-- `PREMIUM_FTP_USER`: FTP user for the production site.
-- `PREMIUM_FTP_PASSWORD`: FTP password for the production site.
-- `PREMIUM_FTP_TARGET_DIR`: remote public directory for `rubennmg.com`.
-
-Production currently deploys only `apps/frontend/dist/`; it does not deploy backend services or PostgreSQL.
+See [deployment-vps.md](deployment-vps.md) for paths, host-key verification and first deployment.

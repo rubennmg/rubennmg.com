@@ -1,57 +1,58 @@
-name: Deploy Production Premium
+name: Deploy production
 
 on:
     push:
-        branches:
-            - main
-    workflow_dispatch:
+        branches: [main]
 
 permissions:
-    contents: write
+    contents: read
 
 concurrency:
-    group: deploy-production-premium
+    group: deploy-production
     cancel-in-progress: false
 
 jobs:
+    verify:
+        name: Verify before deployment
+        uses: ./.github/workflows/ci.yml
+
     deploy:
-        name: Deploy frontend to Premium Hosting
+        permissions:
+            contents: write
+        needs: verify
+        name: Deploy production to VPS
         runs-on: ubuntu-latest
         environment: production
-
-        defaults:
-            run:
-                working-directory: apps/frontend
-
         steps:
-            - name: Checkout
-              uses: actions/checkout@v7
+            - uses: actions/checkout@v7
               with:
                   fetch-depth: 0
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v7
-              with:
-                  node-version: 22
-                  cache: npm
-                  cache-dependency-path: apps/frontend/package-lock.json
-
-            - name: Install dependencies
-              run: npm ci
-
-            - name: Build frontend
-              run: npm run build
-
-            - name: Deploy by FTP
-              uses: SamKirkland/FTP-Deploy-Action@v4.4.0
-              with:
-                  server: ${{ secrets.PREMIUM_FTP_HOST }}
-                  username: ${{ secrets.PREMIUM_FTP_USER }}
-                  password: ${{ secrets.PREMIUM_FTP_PASSWORD }}
-                  local-dir: apps/frontend/dist/
-                  server-dir: ${{ secrets.PREMIUM_FTP_TARGET_DIR }}
+            - name: Configure SSH
+              env:
+                  VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+                  VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+              run: |
+                  install -d -m 700 ~/.ssh
+                  printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+                  chmod 600 ~/.ssh/deploy_key
+                  printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+                  chmod 600 ~/.ssh/known_hosts
+            - name: Deploy exact verified commit
+              id: deploy
+              env:
+                  VPS_HOST: ${{ secrets.VPS_HOST }}
+                  VPS_USER: ${{ secrets.VPS_USER }}
+                  DEPLOY_SHA: ${{ github.sha }}
+              run: |
+                  set -euo pipefail
+                  ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes \
+                    "$VPS_USER@$VPS_HOST" bash -s -- production "$DEPLOY_SHA" < infra/remote-deploy.sh | tee /tmp/deploy-result.log
+                  if grep -qx "DEPLOYED_SHA=$DEPLOY_SHA" /tmp/deploy-result.log; then
+                    echo "deployed=true" >> "$GITHUB_OUTPUT"
+                  fi
 
             - name: Calculate next version
+              if: steps.deploy.outputs.deployed == 'true'
               id: version
               run: |
                   cd "$GITHUB_WORKSPACE"
@@ -75,6 +76,7 @@ jobs:
                   echo "Next tag: $next_tag"
 
             - name: Create GitHub release
+              if: steps.deploy.outputs.deployed == 'true'
               env:
                   GH_TOKEN: ${{ github.token }}
               run: |

@@ -1,45 +1,43 @@
-name: Deploy Staging
+name: Deploy staging
 
 on:
     push:
-        branches:
-            - develop
+        branches: [develop]
+
+permissions:
+    contents: read
 
 concurrency:
     group: deploy-staging
     cancel-in-progress: false
 
 jobs:
+    verify:
+        name: Verify before deployment
+        uses: ./.github/workflows/ci.yml
+
     deploy:
-        name: Deploy to VPS
+        needs: verify
+        name: Deploy staging to VPS
         runs-on: ubuntu-latest
         environment: staging
-
         steps:
+            - uses: actions/checkout@v7
             - name: Configure SSH
               env:
-                  VPS_HOST: ${{ secrets.VPS_HOST }}
-                  VPS_USER: ${{ secrets.VPS_USER }}
                   VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+                  VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
               run: |
-                  mkdir -p ~/.ssh
-                  chmod 700 ~/.ssh
+                  install -d -m 700 ~/.ssh
                   printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
                   chmod 600 ~/.ssh/deploy_key
-                  ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
-
-            - name: Deploy staging stack
+                  printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+                  chmod 600 ~/.ssh/known_hosts
+            - name: Deploy exact verified commit
               env:
                   VPS_HOST: ${{ secrets.VPS_HOST }}
                   VPS_USER: ${{ secrets.VPS_USER }}
+                  DEPLOY_SHA: ${{ github.sha }}
               run: |
-                  ssh -i ~/.ssh/deploy_key "$VPS_USER@$VPS_HOST" <<'EOF'
-                    set -e
-                    cd /home/deploy/apps/rubennmg.com
-                    git fetch origin
-                    git checkout develop
-                    git reset --hard origin/develop
-                    cd infra/staging
-                    docker compose --env-file .env.staging -f compose.yml up -d --build
-                    docker image prune -f
-                  EOF
+                  ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes \
+                    "$VPS_USER@$VPS_HOST" bash -s -- staging "$DEPLOY_SHA" < infra/remote-deploy.sh

@@ -1,0 +1,39 @@
+name: rubennmg-production
+services:
+    frontend:
+        extends:
+            file: ../compose.app.yml
+            service: frontend
+        networks:
+            web:
+                aliases: [production-frontend]
+    backend:
+        extends:
+            file: ../compose.app.yml
+            service: backend
+        environment:
+            APP_ENV: production
+            DATABASE_URL: postgresql+psycopg://rubennmg:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/rubennmg_production
+        networks:
+            web:
+                aliases: [production-backend]
+            internal:
+    db:
+        extends:
+            file: ../compose.app.yml
+            service: db
+        environment:
+            POSTGRES_DB: rubennmg_production
+
+volumes:
+    postgres_data:
+        external: true
+        name: rubennmg-production_postgres_data
+
+networks:
+    web:
+        external: true
+        name: rubennmg_production_web
+    internal:
+        name: rubennmg_production_db
+        internal: true

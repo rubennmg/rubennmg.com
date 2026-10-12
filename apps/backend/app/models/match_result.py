@@ -27,3 +27,25 @@ class MatchResult(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     match: Mapped["Match"] = relationship(back_populates="results")
     player: Mapped["Player"] = relationship(back_populates="results")
+    catan: Mapped["CatanResult | None"] = relationship(
+        back_populates="result", cascade="all, delete-orphan", single_parent=True,
+    )
+
+
+class CatanResult(Base):
+    __tablename__ = "catan_results"
+    __table_args__ = tuple(
+        CheckConstraint(f"{field} >= 0", name=f"ck_catan_results_{field}")
+        for field in ("cities", "settlements", "roads", "victory_point_cards")
+    )
+
+    result_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("match_results.id", ondelete="CASCADE"), primary_key=True,
+    )
+    cities: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    settlements: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    roads: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    longest_road: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    largest_army: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    victory_point_cards: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    result: Mapped["MatchResult"] = relationship(back_populates="catan")

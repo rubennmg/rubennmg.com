@@ -54,7 +54,7 @@ export const portfolio = {
             { label: "Experiencia", href: "#experiencia" },
             { label: "Formación", href: "#formacion" },
             { label: "Proyectos", href: "#proyectos" },
-            { label: "Juegos", href: "/games/catan" },
+            { label: "Juegos", href: "/games" },
         ],
         hero: {
             primaryAction: "Ver experiencia",
@@ -215,7 +215,7 @@ export const portfolio = {
                 description:
                     "Portfolio en Astro dentro de una arquitectura full stack con FastAPI y PostgreSQL, preparada para rankings de juegos y nuevas herramientas.",
                 link: "https://github.com/rubennmg/rubennmg.com",
-                liveLink: "/games/catan",
+                liveLink: "/games",
                 liveLabel: "Explorar Catán",
                 image: "/appLogo.svg",
                 tags: ["Astro", "FastAPI", "PostgreSQL", "Docker"],
@@ -274,7 +274,7 @@ export const portfolio = {
             { label: "Experience", href: "#experience" },
             { label: "Education", href: "#education" },
             { label: "Projects", href: "#projects" },
-            { label: "Games", href: "/games/catan" },
+            { label: "Games", href: "/games" },
         ],
         hero: {
             primaryAction: "View experience",
@@ -435,7 +435,7 @@ export const portfolio = {
                 description:
                     "An Astro portfolio within a full-stack FastAPI and PostgreSQL architecture, prepared for game rankings and new tools.",
                 link: "https://github.com/rubennmg/rubennmg.com",
-                liveLink: "/games/catan",
+                liveLink: "/games",
                 liveLabel: "Explore Catan",
                 image: "/appLogo.svg",
                 tags: ["Astro", "FastAPI", "PostgreSQL", "Docker"],

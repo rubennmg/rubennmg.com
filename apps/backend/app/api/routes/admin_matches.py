@@ -8,7 +8,7 @@ from app.api.deps import require_admin, require_csrf_token
 from app.db.session import get_db
 from app.models.game import Game
 from app.models.match import Match
-from app.models.match_result import MatchResult
+from app.models.match_result import CatanResult, MatchResult
 from app.models.player import Player
 from app.models.user import User
 from app.schemas.match import MatchCreate, MatchRead, MatchResultInput, MatchUpdate
@@ -20,6 +20,7 @@ def _match_options():
     return (
         selectinload(Match.game),
         selectinload(Match.results).selectinload(MatchResult.player),
+        selectinload(Match.results).selectinload(MatchResult.catan),
     )
 
 
@@ -35,8 +36,16 @@ def _get_active_game(db: Session, game_slug: str) -> Game:
 
 
 def _validate_results(
-    db: Session, game: Game, results: list[MatchResultInput]
+    db: Session,
+    game: Game,
+    results: list[MatchResultInput],
+    existing_player_ids: set[uuid.UUID],
 ) -> list[Player]:
+    if game.slug != "catan" and any(result.catan is not None for result in results):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Catán details are only allowed for Catán matches",
+        )
     if len(results) < game.min_players:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -67,13 +76,16 @@ def _validate_results(
 
     players = list(
         db.scalars(
-            select(Player).where(Player.id.in_(player_ids), Player.is_active.is_(True))
+            select(Player).where(Player.id.in_(player_ids))
         )
     )
-    if len(players) != len(player_ids):
+    if len(players) != len(player_ids) or any(
+        not player.is_active and player.id not in existing_player_ids
+        for player in players
+    ):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="All players must exist and be active",
+            detail="Players must exist; inactive players can only remain in their existing matches",
         )
 
     return players
@@ -83,7 +95,8 @@ def _apply_match_payload(
     db: Session, match: Match, payload: MatchCreate | MatchUpdate, user: User
 ) -> None:
     game = _get_active_game(db, payload.game_slug)
-    _validate_results(db, game, payload.results)
+    existing_player_ids = {result.player_id for result in match.results}
+    _validate_results(db, game, payload.results, existing_player_ids)
 
     match.game = game
     match.played_at = payload.played_at
@@ -99,6 +112,10 @@ def _apply_match_payload(
             score=result.score,
             position=result.position,
             is_winner=result.is_winner,
+            catan=(
+                CatanResult(**result.catan.model_dump()) if result.catan is not None
+                else None
+            ),
         )
         for result in payload.results
     ]

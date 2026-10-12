@@ -1,16 +1,31 @@
 name: CI
 
 on:
+  workflow_call:
   push:
     branches:
       - main
-      - develop
   pull_request:
     branches:
       - main
       - develop
 
 jobs:
+  deployment-config:
+    name: VPS deployment checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate deployment script and Compose
+        run: |
+          bash -n infra/deploy.sh infra/remote-deploy.sh infra/staging/deploy.sh infra/production/deploy.sh
+          for environment in staging production; do
+            docker compose --env-file "infra/$environment/.env.$environment.example" -f "infra/$environment/compose.yml" config --quiet
+          done
+          docker compose -f infra/proxy/compose.yml config --quiet
+          docker run --rm -v "$PWD/infra/proxy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          python3 infra/test_deploy.py
+
   frontend:
     name: Frontend
     runs-on: ubuntu-latest

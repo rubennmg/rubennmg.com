@@ -1,0 +1,74 @@
+---
+import GamesLayout from "../../components/games/GamesLayout.astro";
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+---
+
+<GamesLayout title="Juegos | rubennmg">
+    <main id="game-content" class="games-main shell">
+        <header class="section-heading pt-7">
+            <p class="eyebrow">Juegos de mesa</p>
+            <h1 class="mt-4 text-4xl sm:text-6xl">Nuestros juegos</h1>
+            <p class="mt-5 max-w-2xl text-lg leading-8 text-textsoft">
+                Elige un juego para consultar su clasificación y las estadísticas de cada jugador.
+            </p>
+        </header>
+        <p id="games-loading" role="status" class="mt-10 text-textsoft">Cargando juegos...</p>
+        <p id="games-empty" class="hidden mt-10 soft-card p-6 text-textsoft">Todavía no hay juegos activos.</p>
+        <div id="games-error" role="alert" class="hidden mt-10 soft-card p-6">
+            <p class="text-textsoft">No se pudieron cargar los juegos.</p>
+            <button id="games-retry" type="button" class="primary-button mt-4">Reintentar</button>
+        </div>
+        <ul id="games-list" aria-label="Juegos activos" class="mt-10 grid gap-4"></ul>
+    </main>
+    <script is:inline define:vars={{ apiUrl }}>
+        (() => {
+            const loading = document.getElementById("games-loading");
+            const empty = document.getElementById("games-empty");
+            const error = document.getElementById("games-error");
+            const list = document.getElementById("games-list");
+
+            async function loadGames() {
+                loading.classList.remove("hidden");
+                empty.classList.add("hidden");
+                error.classList.add("hidden");
+                list.replaceChildren();
+                try {
+                    const response = await fetch(`${apiUrl}/api/games`, { headers: { Accept: "application/json" } });
+                    if (!response.ok) throw new Error("Games request failed");
+                    const games = (await response.json()).filter((game) => game.is_active);
+                    for (const game of games) {
+                        const item = document.createElement("li");
+                        const link = document.createElement("a");
+                        link.href = `/games/${encodeURIComponent(game.slug)}/rankings`;
+                        link.className = "soft-card flex flex-wrap items-center justify-between gap-5 p-6 sm:p-8";
+                        const text = document.createElement("div");
+                        text.className = "min-w-0 flex-1";
+                        const title = document.createElement("h2");
+                        title.className = "text-2xl font-extrabold text-df-text";
+                        title.textContent = game.display_name;
+                        text.append(title);
+                        if (game.description) {
+                            const description = document.createElement("p");
+                            description.className = "mt-2 text-sm leading-6 text-textsoft";
+                            description.textContent = game.description;
+                            text.append(description);
+                        }
+                        const action = document.createElement("span");
+                        action.className = "text-sm font-bold text-accent";
+                        action.textContent = "Ver ranking →";
+                        link.append(text, action);
+                        item.append(link);
+                        list.append(item);
+                    }
+                    empty.classList.toggle("hidden", games.length !== 0);
+                } catch {
+                    error.classList.remove("hidden");
+                } finally {
+                    loading.classList.add("hidden");
+                }
+            }
+            document.getElementById("games-retry").addEventListener("click", loadGames);
+            loadGames();
+        })();
+    </script>
+</GamesLayout>

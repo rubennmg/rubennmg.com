@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -171,3 +172,65 @@ def test_create_flipseven_match_allows_missing_positions(
     assert response.status_code == 201
     assert response.json()["game"]["slug"] == "flipseven"
     assert all(result["position"] is None for result in response.json()["results"])
+
+
+def test_edit_historical_match_updates_ranking_with_inactive_participant(
+    authenticated_client: TestClient, csrf_token: str
+) -> None:
+    client = authenticated_client
+    headers = {"X-CSRF-Token": csrf_token}
+    player_ids = _create_players(client, csrf_token, 3)
+    payload = _catan_payload(player_ids)
+    created = client.post("/api/admin/matches", headers=headers, json=payload)
+    assert created.status_code == 201
+    match_id = created.json()["id"]
+
+    response = client.patch(
+        f"/api/admin/players/{player_ids[0]}/status",
+        headers=headers, json={"is_active": False},
+    )
+    assert response.status_code == 200
+    ranking_url = "/api/games/catan/rankings"
+    before = client.get(ranking_url).json()
+    assert before["ranking"][0]["player_id"] == player_ids[0]
+    assert before["ranking"][0]["total_points"] == 10
+
+    payload["results"][0]["score"] = 12
+    updated = client.put(f"/api/admin/matches/{match_id}", headers=headers, json=payload)
+    assert updated.status_code == 200
+    assert len(updated.json()["results"]) == 3
+    after = client.get(ranking_url).json()
+    assert after["summary"] == {"total_players": 3, "total_matches": 1}
+    assert after["ranking"][0]["total_points"] == 12
+    assert after["ranking"][0]["matches_played"] == 1
+
+    assert client.delete(f"/api/admin/matches/{match_id}", headers=headers).status_code == 204
+    remaining = client.get(ranking_url).json()
+    assert remaining["summary"] == {"total_players": 2, "total_matches": 0}
+    assert {row["player_id"] for row in remaining["ranking"]} == set(player_ids[1:])
+    assert all(row["total_points"] == row["matches_played"] == 0 for row in remaining["ranking"])
+
+
+@pytest.mark.parametrize("editing", [False, True])
+def test_inactive_player_cannot_be_added_to_a_match(
+    authenticated_client: TestClient, csrf_token: str, editing: bool
+) -> None:
+    client = authenticated_client
+    headers = {"X-CSRF-Token": csrf_token}
+    player_ids = _create_players(client, csrf_token, 4)
+    payload = _catan_payload(player_ids[:3])
+    created = client.post("/api/admin/matches", headers=headers, json=payload)
+    assert created.status_code == 201
+    match_id = created.json()["id"]
+    assert client.patch(
+        f"/api/admin/players/{player_ids[3]}/status",
+        headers=headers, json={"is_active": False},
+    ).status_code == 200
+    payload["results"][2]["player_id"] = player_ids[3]
+    if editing:
+        response = client.put(f"/api/admin/matches/{match_id}", headers=headers, json=payload)
+    else:
+        response = client.post("/api/admin/matches", headers=headers, json=payload)
+    assert response.status_code == 422
+    stored = client.get(f"/api/admin/matches/{match_id}").json()
+    assert {result["player"]["id"] for result in stored["results"]} == set(player_ids[:3])
