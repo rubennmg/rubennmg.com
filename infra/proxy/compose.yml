@@ -1,0 +1,27 @@
+name: rubennmg-proxy
+services:
+    caddy:
+        image: caddy:2
+        restart: unless-stopped
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro
+            - caddy_data:/data
+            - caddy_config:/config
+        networks:
+            - staging
+            - production
+volumes:
+    caddy_data:
+        external: true
+        name: staging_caddy_data
+    caddy_config:
+networks:
+    staging:
+        external: true
+        name: rubennmg_staging_web
+    production:
+        external: true
+        name: rubennmg_production_web

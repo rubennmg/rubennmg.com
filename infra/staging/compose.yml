@@ -1,85 +1,40 @@
+name: staging
 services:
-    caddy:
-        image: caddy:2
-        restart: unless-stopped
-        ports:
-            - "80:80"
-            - "443:443"
-        volumes:
-            - ./Caddyfile:/etc/caddy/Caddyfile:ro
-            - caddy_data:/data
-            - caddy_config:/config
-        depends_on:
-            - frontend
-            - backend
-        networks:
-            - web
-
     frontend:
-        build:
-            context: ../../apps/frontend
-            args:
-                PUBLIC_API_URL: ${PUBLIC_API_URL:?Set PUBLIC_API_URL in .env.staging}
-        restart: unless-stopped
-        environment:
-            PUBLIC_API_URL: ${PUBLIC_API_URL}
-        healthcheck:
-            test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/games/"]
-            interval: 5s
-            timeout: 5s
-            retries: 12
+        extends:
+            file: ../compose.app.yml
+            service: frontend
         networks:
-            - web
-
+            web:
+                aliases: [staging-frontend]
     backend:
-        build:
-            context: ../../apps/backend
-        restart: unless-stopped
+        extends:
+            file: ../compose.app.yml
+            service: backend
         environment:
-            APP_ENV: ${APP_ENV:-staging}
+            APP_ENV: staging
             DATABASE_URL: postgresql+psycopg://rubennmg:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/rubennmg_staging
-            CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?Set CORS_ALLOWED_ORIGINS}
-            ADMIN_USERNAME: ${ADMIN_USERNAME:?Set ADMIN_USERNAME}
-            ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD}
-            ENABLE_DEMO_DATA: ${ENABLE_DEMO_DATA:-false}
-            AUTH_SECRET_KEY: ${AUTH_SECRET_KEY:?Set AUTH_SECRET_KEY}
-            AUTH_COOKIE_NAME: ${AUTH_COOKIE_NAME:-rubennmg_session}
-            AUTH_SESSION_DAYS: ${AUTH_SESSION_DAYS:-7}
-        depends_on:
-            db:
-                condition: service_healthy
-        healthcheck:
-            test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/db', timeout=4)"]
-            interval: 5s
-            timeout: 5s
-            retries: 12
-            start_period: 10s
         networks:
-            - web
-            - internal
-
+            web:
+                aliases: [staging-backend]
+            internal:
     db:
-        image: postgres:16
-        restart: unless-stopped
+        extends:
+            file: ../compose.app.yml
+            service: db
         environment:
             POSTGRES_DB: rubennmg_staging
-            POSTGRES_USER: rubennmg
-            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
-        healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U rubennmg -d rubennmg_staging"]
-            interval: 5s
-            timeout: 5s
-            retries: 12
-        networks:
-            - internal
 
 volumes:
-    caddy_data:
-    caddy_config:
     postgres_data:
+        external: true
+        name: staging_postgres_data
 
 networks:
     web:
+        external: true
+        name: rubennmg_staging_web
     internal:
+        # New network name avoids changing the old live staging_internal in place.
+        name: rubennmg_staging_db
+        internal: true

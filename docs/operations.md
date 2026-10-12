@@ -1,109 +1,87 @@
-# Operations
+# VPS Operations
 
-Operational commands assume the VPS repository path is:
-
-```txt
-/home/deploy/apps/rubennmg.com
-```
-
-## Staging Stack
-
-Run commands from `infra/staging`:
+Provisioning/migration: [deployment-vps.md](deployment-vps.md). Commands run as `deploy`. Select **one** environment explicitly in your shell:
 
 ```bash
+# Staging:
 cd /home/deploy/apps/rubennmg.com/infra/staging
+compose=(docker compose -p staging --env-file .env.staging -f compose.yml)
+database=rubennmg_staging
+
+# OR production, in its own checkout:
+cd /home/deploy/apps/rubennmg-production/infra/production
+compose=(docker compose -p rubennmg-production --env-file .env.production -f compose.yml)
+database=rubennmg_production
 ```
 
-Start or update staging:
+Status and logs:
 
 ```bash
-docker compose --env-file .env.staging -f compose.yml up -d --build
+"${compose[@]}" ps
+"${compose[@]}" logs --tail=100 backend frontend db
 ```
 
-Stop staging:
+Deploy using the environment wrapper (`bash deploy.sh` from that environment directory). It builds, runs migrations and seed, starts services, waits for healthchecks and verifies HTTPS. Do not bypass migrations with an ad-hoc `up --build`.
+
+## Backups and restore
+
+Back up each database separately and store encrypted copies off the VPS:
 
 ```bash
-docker compose --env-file .env.staging -f compose.yml down
-```
-
-Show service status:
-
-```bash
-docker compose --env-file .env.staging -f compose.yml ps
-```
-
-## Logs
-
-```bash
-docker compose --env-file .env.staging -f compose.yml logs -f caddy
-docker compose --env-file .env.staging -f compose.yml logs -f frontend
-docker compose --env-file .env.staging -f compose.yml logs -f backend
-docker compose --env-file .env.staging -f compose.yml logs -f db
-```
-
-## Rebuild One Service
-
-```bash
-docker compose --env-file .env.staging -f compose.yml up -d --build backend
-docker compose --env-file .env.staging -f compose.yml up -d --build frontend
-```
-
-## Health Checks
-
-```bash
-curl https://api.rubennmg.cloud/health
-curl https://api.rubennmg.cloud/api/health/db
-```
-
-From inside the backend container:
-
-```bash
-docker compose --env-file .env.staging -f compose.yml exec backend python -c "import json, urllib.request; print(json.load(urllib.request.urlopen('http://127.0.0.1:8000/api/health/db')))"
-```
-
-## PostgreSQL Backup
-
-Recommended VPS backup directory:
-
-```txt
-/home/deploy/backups/postgres
-```
-
-Create a manual backup:
-
-```bash
+umask 077
 mkdir -p /home/deploy/backups/postgres
-docker compose --env-file .env.staging -f compose.yml exec -T db pg_dump -U rubennmg rubennmg_staging > /home/deploy/backups/postgres/backup_$(date +%F).sql
+"${compose[@]}" exec -T db pg_dump -U rubennmg -Fc "$database" > "/home/deploy/backups/postgres/${database}_$(date +%F_%H%M%S).dump"
 ```
 
-## PostgreSQL Restore
-
-Restore from a backup file:
+For a **fresh, empty restore target** (after creating its external volume/network and env file), start only its database and restore the selected dump before the first normal deployment:
 
 ```bash
-docker compose --env-file .env.staging -f compose.yml exec -T db psql -U rubennmg rubennmg_staging < /home/deploy/backups/postgres/backup_YYYY-MM-DD.sql
+"${compose[@]}" up -d --wait db
+# Set this to the correct environment's actual backup file.
+backup_file=/home/deploy/backups/postgres/REPLACE_WITH_CORRECT_BACKUP.dump
+"${compose[@]}" exec -T db pg_restore --exit-on-error --no-owner -U rubennmg -d "$database" < "$backup_file"
+bash deploy.sh --skip-public-checks
 ```
 
-Only restore after confirming the target database can be overwritten.
+Restoring into an existing nonempty database needs an explicit reviewed recovery plan; do not run a destructive restore blindly. Test backup restoration periodically. Reverting application code does not revert schema migrations; keep migrations backward compatible and review all schema changes.
 
-## Caddy
+## Shared Caddy
 
-Reload the stack after changing `Caddyfile`:
+Live configuration is `/home/deploy/apps/rubennmg-proxy`, separate from Git checkouts. Both branches carry the template but neither application workflow copies or reloads it. Apply intended proxy changes manually and review their effect on both domains:
 
 ```bash
-docker compose --env-file .env.staging -f compose.yml up -d caddy
+cd /home/deploy/apps/rubennmg-proxy
+# Edit the live Caddyfile in place, then:
+docker compose -f compose.yml exec -T caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+docker compose -f compose.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+docker compose -f compose.yml logs --tail=100 caddy
 ```
 
-Check Caddy logs:
+If replacing the bind-mounted file via an atomic rename, the running container can retain the old inode. Edit in place (for example `cat reviewed-Caddyfile > Caddyfile`) or deliberately recreate the proxy during a maintenance window.
+
+## Disk usage
 
 ```bash
-docker compose --env-file .env.staging -f compose.yml logs -f caddy
+docker system df
+docker image ls --filter dangling=true
 ```
 
-## Cleanup
+There is no automatic global prune, since both environments share the daemon. When no builds/deployments are running, inspect and remove only individually selected unused image IDs with `docker image rm IMAGE_ID` (without force). Never prune volumes or run `down -v` as a deployment/cleanup step. Keep enough disk space for two stacks and image builds.
 
-Remove unused Docker images:
+## Check deployment isolation
+
+Record the other project's running containers before a deploy, then compare afterward:
 
 ```bash
-docker image prune -f
+# Example: verify production did not restart while deploying staging.
+for id in $(docker ps -q --filter label=com.docker.compose.project=rubennmg-production); do
+  docker inspect "$id" --format '{{.Id}} {{.State.StartedAt}}'
+done > /tmp/production-before.txt
+bash /home/deploy/apps/rubennmg.com/infra/staging/deploy.sh
+for id in $(docker ps -q --filter label=com.docker.compose.project=rubennmg-production); do
+  docker inspect "$id" --format '{{.Id}} {{.State.StartedAt}}'
+done > /tmp/production-after.txt
+diff -u /tmp/production-before.txt /tmp/production-after.txt
 ```
+
+Repeat in reverse with project `staging` and the production deploy script. No diff is expected. Check both `/api/health` endpoints report their correct environment and `/api/health/db` succeeds.
